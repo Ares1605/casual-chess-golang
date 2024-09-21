@@ -76,14 +76,13 @@ func main() {
 		db, err := openDB()
 		if err != nil { panic(err) }
 
-		if data.Name != "" {
-			
+		if data.Name != "" { // if name is empty, use uuid
 			stmt, err := db.Prepare("SELECT id, name, uuid FROM users WHERE name=? LIMIT 1")
 			if err != nil {
 				panic(err)
 			}
 			_, err = stmt.Exec(data.Name)
-		} else {
+		} else { // use name
 			stmt, err := db.Prepare("SELECT id, name, uuid FROM users WHERE uuid=? LIMIT 1")
 			if err != nil {
 				panic(err)
@@ -116,9 +115,6 @@ func main() {
 	})
 	router.GET("/ping", func(c *gin.Context) {
 		c.String(200, "pong")
-	})
-	router.GET("/", func(c *gin.Context) {
-		c.String(200, "Hello, World!")
 	})
 
 	router.Run(":8080")
