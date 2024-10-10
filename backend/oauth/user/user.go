@@ -8,6 +8,8 @@ import (
 type User struct {
   UUID string
   Email string
+	Token string
+	Expiry int64
 }
 
 func New(idToken string) *User {
@@ -15,6 +17,8 @@ func New(idToken string) *User {
   return &User {
     UUID: googleJWT.Sub,
     Email: googleJWT.Email,
+		Expiry: googleJWT.Exp,
+		Token: idToken,
   }
 }
 
@@ -38,7 +42,7 @@ func decodeJWT(idToken string) *googleJWT {
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-	  panic(err)
+	  panic(ok)
 	}
 
 	jsonClaims, err := json.Marshal(claims)

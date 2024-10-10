@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"log"
+	"github.com/google/uuid"
 )
 
 // App struct
@@ -57,7 +58,8 @@ func awaitSignIn() string {
   return "response:" + string(body)
 }
 func (a *App) SignIn() string {
-	url := "http://localhost:8080/signin"
+	customUUID := uuid.New()
+	url := "http://localhost:8080/signin?uuid=" + customUUID.String()
 
 	var cmd *exec.Cmd
 

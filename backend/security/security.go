@@ -6,9 +6,10 @@ import (
   "github.com/golang-jwt/jwt"
   "encoding/json"
 	"github.com/gin-gonic/gin"
-  "errors"
   "time"
   "github.com/Ares1605/casual-chess-backend/env"
+  "github.com/Ares1605/casual-chess-backend/security/securityerror"
+  "github.com/Ares1605/casual-chess-backend/oauth/user"
   "fmt"
 )
 
@@ -28,28 +29,38 @@ func getTokenExpiryExtension() uint64 {
   return parsed * 60 * 60
 }
 
-func (*Security) Authenticate(c *gin.Context) error {
+func (security *Security) Authenticate(c *gin.Context) {
   authHeaders := c.Request.Header["Authorization"]
   if len(authHeaders) == 0 {
-    return errors.New("Authorizarion header missing")
+		security.Reject(c, "Authorization header is missing", securityerror.Authentication)
+    return
   }
   authHeader := authHeaders[0]
 
   prefix := "Bearer "
   if len(authHeader) < len(prefix) {
-    return errors.New("Defective authorization header in request")
+		security.Reject(c, "Defect authorization header in request", securityerror.Authentication)
+    return
   }
   token := authHeader[len(prefix):]
-  decoded := decodeJWT(token)
+  reqstedUser := user.New(token)
   now := time.Now().Unix()
-	extendedExpiry := decoded.Exp + int64(getTokenExpiryExtension())
+	extendedExpiry := reqstedUser.Expiry + int64(getTokenExpiryExtension())
 	if now > extendedExpiry {
-		return errors.New("Token has expired")
+		security.Reject(c, "Provided token has expired", securityerror.Authentication)
+		return
 	}
+
+  c.Set("user", reqstedUser)
+  c.Next()
 }
-func (*Security) Reject(c *gin.Context) {
+func (*Security) Reject(c *gin.Context, errorMessage string, errorType securityerror.ErrorType) {
   c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-    "error": "Authentication failed",
+    "success": false,
+    "error": gin.H{
+      "type": errorType.String(),
+      "message": errorMessage,
+    },
   }) 
 }
 
@@ -65,9 +76,6 @@ type googleJWT struct {
 	Exp           int64  `json:"exp"`
 }
 
-func Authenticate(token string) *googleJWT {
-  
-}
 func decodeJWT(token string) *googleJWT {
 	parsed, _, err := new(jwt.Parser).ParseUnverified(token, jwt.MapClaims{})
 	if err != nil {
@@ -76,7 +84,7 @@ func decodeJWT(token string) *googleJWT {
 
 	claims, ok := parsed.Claims.(jwt.MapClaims)
 	if !ok {
-	  panic(err)
+	  panic(ok)
 	}
 
 	jsonClaims, err := json.Marshal(claims)
