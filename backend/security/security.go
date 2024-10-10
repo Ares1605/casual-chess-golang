@@ -1,17 +1,31 @@
 package security
 
 import (
+  "net/http"
+  "strconv"
   "github.com/golang-jwt/jwt"
   "encoding/json"
 	"github.com/gin-gonic/gin"
   "errors"
   "time"
+  "github.com/Ares1605/casual-chess-backend/env"
+  "fmt"
 )
 
 type Security struct {}
 
 func New() *Security {
   return &Security{}
+}
+
+func getTokenExpiryExtension() uint64 {
+  extension := env.Get("OAUTH_TOKEN_EXPIRY_EXTENSION")
+  parsed, err := strconv.ParseUint(extension, 10, 64)
+  if err != nil {
+    fmt.Println("OAUTH_TOKEN_EXPIRY_EXTENSION invalid format (expects int), default to 0")
+    parsed = 0
+  }
+  return parsed * 60 * 60
 }
 
 func (*Security) Authenticate(c *gin.Context) error {
@@ -28,9 +42,15 @@ func (*Security) Authenticate(c *gin.Context) error {
   token := authHeader[len(prefix):]
   decoded := decodeJWT(token)
   now := time.Now().Unix()
-	if now > decoded.Exp {
+	extendedExpiry := decoded.Exp + int64(getTokenExpiryExtension())
+	if now > extendedExpiry {
 		return errors.New("Token has expired")
 	}
+}
+func (*Security) Reject(c *gin.Context) {
+  c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+    "error": "Authentication failed",
+  }) 
 }
 
 type googleJWT struct {
@@ -46,6 +66,7 @@ type googleJWT struct {
 }
 
 func Authenticate(token string) *googleJWT {
+  
 }
 func decodeJWT(token string) *googleJWT {
 	parsed, _, err := new(jwt.Parser).ParseUnverified(token, jwt.MapClaims{})
