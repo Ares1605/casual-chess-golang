@@ -3,13 +3,11 @@ package security
 import (
   "net/http"
   "strconv"
-  "github.com/golang-jwt/jwt"
-  "encoding/json"
 	"github.com/gin-gonic/gin"
   "time"
   "github.com/Ares1605/casual-chess-backend/env"
   "github.com/Ares1605/casual-chess-backend/security/securityerror"
-  "github.com/Ares1605/casual-chess-backend/oauth/user"
+  "github.com/Ares1605/casual-chess-backend/oauth/googleuser"
   "fmt"
 )
 
@@ -43,15 +41,19 @@ func (security *Security) Authenticate(c *gin.Context) {
     return
   }
   token := authHeader[len(prefix):]
-  reqstedUser := user.New(token)
+  reqstedUser, err := googleuser.New(token)
+  if err != nil {
+    security.Reject(c, "Provided token could not be parsed", securityerror.Authentication)
+    return
+  }
   now := time.Now().Unix()
-	extendedExpiry := reqstedUser.Expiry + int64(getTokenExpiryExtension())
+	extendedExpiry := reqstedUser.JWT.Exp + int64(getTokenExpiryExtension())
 	if now > extendedExpiry {
 		security.Reject(c, "Provided token has expired", securityerror.Authentication)
 		return
 	}
 
-  c.Set("user", reqstedUser)
+  c.Set("googleuser", reqstedUser)
   c.Next()
 }
 func (*Security) Reject(c *gin.Context, errorMessage string, errorType securityerror.ErrorType) {
@@ -62,40 +64,4 @@ func (*Security) Reject(c *gin.Context, errorMessage string, errorType securitye
       "message": errorMessage,
     },
   }) 
-}
-
-type googleJWT struct {
-	Iss           string `json:"iss"`
-	Azp           string `json:"azp"`
-	Aud           string `json:"aud"`
-	Sub           string `json:"sub"`
-	Email         string `json:"email"`
-	EmailVerified bool   `json:"email_verified"`
-	AtHash        string `json:"at_hash"`
-	Iat           int64  `json:"iat"`
-	Exp           int64  `json:"exp"`
-}
-
-func decodeJWT(token string) *googleJWT {
-	parsed, _, err := new(jwt.Parser).ParseUnverified(token, jwt.MapClaims{})
-	if err != nil {
-	  panic(err)
-	}
-
-	claims, ok := parsed.Claims.(jwt.MapClaims)
-	if !ok {
-	  panic(ok)
-	}
-
-	jsonClaims, err := json.Marshal(claims)
-	if err != nil {
-	  panic(err)
-	}
-
-	var googleJWT googleJWT
-	if err := json.Unmarshal(jsonClaims, &googleJWT); err != nil {
-	  panic(err)
-	}
-
-	return &googleJWT
 }

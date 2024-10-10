@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"github.com/Ares1605/casual-chess-backend/oauth/user"
+	"github.com/Ares1605/casual-chess-backend/oauth/googleuser"
 )
 
 type tokenResponse struct {
@@ -18,7 +18,7 @@ type tokenResponse struct {
 	RefreshToken string `json:"refresh_token,omitempty"`
 }
 
-func GetUser(code string) *user.User {
+func GetGoogleUser(code string) (*googleuser.GoogleUser, error) {
   data := url.Values{}
 	data.Set("code", code)
 	data.Set("client_id", getClientID())
@@ -29,7 +29,7 @@ func GetUser(code string) *user.User {
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", "https://oauth2.googleapis.com/token", strings.NewReader(data.Encode()))
 	if err != nil {
-	  panic(err)
+		return nil, err
 	}
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -37,19 +37,19 @@ func GetUser(code string) *user.User {
 	// send request
 	resp, err := client.Do(req)
 	if err != nil {
-	  panic(err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-	  panic(err)
+		return nil, err
 	}
 	var tokenResponse tokenResponse
 	err = json.Unmarshal(body, &tokenResponse)
 	if err != nil {
-	  panic(err)
+		return nil, err
 	}
 
-  return user.New(tokenResponse.IDToken)
+  return googleuser.New(tokenResponse.IDToken)
 }

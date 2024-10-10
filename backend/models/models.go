@@ -4,9 +4,17 @@ import (
 	"database/sql"
 	"errors"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/Ares1605/casual-chess-backend/game"
+	"github.com/Ares1605/casual-chess-backend/oauth/googlejwt"
+	_ "github.com/mattn/go-sqlite3"
 )
+
+type User struct {
+  ID int `json:"id"`
+  DisplayName string `json:"display_name"`
+  UUID string `json:"uuid"`
+  Email string `json:"email"`
+}
 
 func parsePiece(pieceStr string) (game.Piece, error) {
   switch pieceStr {
@@ -63,4 +71,20 @@ func GetGame(dbConn *sql.DB, id int) (*game.Game, error) {
     return nil, err
   }
   return &game, nil
+}
+func createUser(dbConn *sql.DB, googleJWT *googlejwt.GoogleJWT) (*User, error) {
+  // TODO: complete
+}
+func GetUser(dbConn *sql.DB, uuid string) (*User, error) {
+  user := User{}
+  err := dbConn.QueryRow("SELECT id, display_name, uuid, email FROM users WHERE uuid=?", uuid).Scan(
+		&user.ID,
+		&user.DisplayName,
+		&user.UUID,
+		&user.Email,
+    )
+  if err != nil {
+    return nil, err
+  }
+  return &user, nil
 }

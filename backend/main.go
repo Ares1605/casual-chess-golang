@@ -1,33 +1,36 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"net/http"
 	"errors"
+	"fmt"
+	"net/http"
 	"strconv"
-	"github.com/Ares1605/casual-chess-backend/env"
-	"github.com/Ares1605/casual-chess-backend/oauth"
-	"github.com/Ares1605/casual-chess-backend/oauth/user"
-	"github.com/Ares1605/casual-chess-backend/security"
-	"github.com/Ares1605/casual-chess-backend/models"
+
 	"github.com/Ares1605/casual-chess-backend/db"
+	"github.com/Ares1605/casual-chess-backend/env"
+	"github.com/Ares1605/casual-chess-backend/models"
+	"github.com/Ares1605/casual-chess-backend/oauth"
+	"github.com/Ares1605/casual-chess-backend/security"
+	"github.com/Ares1605/casual-chess-backend/oauth/googlejwt"
+	"github.com/Ares1605/casual-chess-backend/oauth/googleuser"
+	"github.com/Ares1605/casual-chess-backend/security/securityerror"
 	"github.com/gin-gonic/gin"
-  "github.com/Ares1605/casual-chess-backend/security/securityerror"
 )
 
 type cacheResponse struct {
 	success bool
-	user *user.User 
+	user *models.User
+	token *googlejwt.GoogleJWT
+	firstTimeUser bool
 }
 
-func getUser(c *gin.Context) (*user.User, error) {
-  value, exists := c.Get("user")
+func getGoogleUser(c *gin.Context) (*googleuser.GoogleUser, error) {
+  value, exists := c.Get("googleuser")
   if !exists {
     return nil, errors.New("user not found in context")
   }
 
-  user, ok := value.(*user.User)
+  user, ok := value.(*googleuser.GoogleUser)
   if !ok {
     return nil, errors.New("invalid user type in context")
   }
@@ -41,7 +44,7 @@ func main() {
 
 	router := gin.Default()
 	router.GET("/ping/auth", securityMnger.Authenticate, func(c *gin.Context) {
-		user, err := getUser(c)
+		user, err := getGoogleUser(c)
     if err != nil {
       securityMnger.Reject(c, err.Error(), securityerror.Internal)
       return
@@ -58,7 +61,8 @@ func main() {
 		if ok {
 			response := &cacheResponse{
 				success: false,
-				user: &user.User{}, // faulty user
+				token: &googlejwt.GoogleJWT{},
+				user: &models.User{},
 			}
 			oldDone <- response
 		}
@@ -72,9 +76,8 @@ func main() {
 		response := <- done
 		c.JSON(200, gin.H{
 			"success": response.success,
-			"email": response.user.Email,
-			"uuid": response.user.UUID,
-			"token": response.user.Token,
+			"user": response.user,
+			"token": response.token,
 		})
 	})
 	router.LoadHTMLGlob("templates/*")
@@ -93,22 +96,43 @@ func main() {
 	})
 	router.GET("/redirect", func(c *gin.Context) {
 		fmt.Println("Redirect called...")
-		c.HTML(200, "redirect.html", gin.H{})
 
 		code := c.Query("code")
 		uuid := c.Query("state")
-		user := oauth.GetUser(code)
+		googleUser, err := oauth.GetGoogleUser(code)
+		if err != nil {
+			c.HTML(200, "error.html", gin.H{})
+			fmt.Println(err)
+			return
+		}
 
 		fmt.Println("  - looking for uuid: ", uuid)
 		done, ok := cache[uuid]
 		if ok {
+			dbConn, err := db.Conn()
+			if err != nil {
+				c.HTML(200, "error.html", gin.H{})
+				fmt.Println(err)
+				return
+			}
+			dbUser, err := models.GetUser(dbConn, googleUser.UUID)
+			firstTimeUser := false
+			if err != nil {
+				firstTimeUser = true
+				// db user doesn't exist, create one
+				models.CreateUser(dbConn, googleUser)
+			}
 			response := &cacheResponse{
 				success: true,
-				user: user,
+				user: dbUser,
+				token: googleUser.JWT,
+				firstTimeUser: firstTimeUser,
 			}
 			done <- response
+			c.HTML(200, "redirect.html", gin.H{})
 		} else {
-			log.Fatal("errmm, never found channel")
+			c.HTML(200, "error.html", gin.H{})
+			fmt.Println("never found the channel")
 		}
 	})
 	router.GET("/game/:id", func(c *gin.Context) {
