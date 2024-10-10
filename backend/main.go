@@ -5,10 +5,13 @@ import (
 	"log"
 	"net/http"
 	"errors"
+	"strconv"
 	"github.com/Ares1605/casual-chess-backend/env"
 	"github.com/Ares1605/casual-chess-backend/oauth"
 	"github.com/Ares1605/casual-chess-backend/oauth/user"
 	"github.com/Ares1605/casual-chess-backend/security"
+	"github.com/Ares1605/casual-chess-backend/models"
+	"github.com/Ares1605/casual-chess-backend/db"
 	"github.com/gin-gonic/gin"
   "github.com/Ares1605/casual-chess-backend/security/securityerror"
 )
@@ -93,7 +96,7 @@ func main() {
 		c.HTML(200, "redirect.html", gin.H{})
 
 		code := c.Query("code")
-		uuid := c.Query("uuid")
+		uuid := c.Query("state")
 		user := oauth.GetUser(code)
 
 		fmt.Println("  - looking for uuid: ", uuid)
@@ -107,6 +110,24 @@ func main() {
 		} else {
 			log.Fatal("errmm, never found channel")
 		}
+	})
+	router.GET("/game/:id", func(c *gin.Context) {
+		idStr := c.Param("id")
+
+		id, err := strconv.Atoi(idStr)
+    if err != nil {
+    	securityMnger.Reject(c, "game id must be an integer", securityerror.Validation)
+    }
+
+		dbConn, err := db.Conn()
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)			
+		}
+		game, err := models.GetGame(dbConn, id)
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+		c.JSON(http.StatusOK, game)
 	})
 	router.Run() // listen and serve on 0.0.0.0:8080
 }
