@@ -47,7 +47,7 @@ func (security *Security) Authenticate(c *gin.Context) {
     return
   }
   now := time.Now().Unix()
-	extendedExpiry := reqstedUser.JWT.Exp + int64(getTokenExpiryExtension())
+	extendedExpiry := reqstedUser.DecodedJWT.Exp + int64(getTokenExpiryExtension())
 	if now > extendedExpiry {
 		security.Reject(c, "Provided token has expired", securityerror.Authentication)
 		return

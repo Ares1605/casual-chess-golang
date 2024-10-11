@@ -7,18 +7,20 @@ import (
 type GoogleUser struct {
   UUID string
   Email string
-  JWT *googlejwt.GoogleJWT
+  DecodedJWT *googlejwt.GoogleJWT
+  EncodedJWT string
 }
 
 func New(token string) (*GoogleUser, error) {
-  parsedJWT, err := googlejwt.New(token)
+  decodedJWT, err := googlejwt.New(token)
   if err != nil {
     return nil, err
   }
   return &GoogleUser {
-    UUID: parsedJWT.Sub,
-    Email: parsedJWT.Email,
-    JWT: parsedJWT,
+    UUID: decodedJWT.Sub,
+    Email: decodedJWT.Email,
+    DecodedJWT: decodedJWT,
+    EncodedJWT: token,
   }, nil
 }
 

@@ -5,12 +5,12 @@ import (
 	"errors"
 
 	"github.com/Ares1605/casual-chess-backend/game"
-	"github.com/Ares1605/casual-chess-backend/oauth/googlejwt"
+	"github.com/Ares1605/casual-chess-backend/oauth/googleuser"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 type User struct {
-  ID int `json:"id"`
+  ID int64 `json:"id"`
   DisplayName string `json:"display_name"`
   UUID string `json:"uuid"`
   Email string `json:"email"`
@@ -72,10 +72,39 @@ func GetGame(dbConn *sql.DB, id int) (*game.Game, error) {
   }
   return &game, nil
 }
-func createUser(dbConn *sql.DB, googleJWT *googlejwt.GoogleJWT) (*User, error) {
-  // TODO: complete
+func CreateUser(dbConn *sql.DB, googleUser *googleuser.GoogleUser) (*User, error) {
+  statement := "INSERT INTO users (display_name, uuid, email) VALUES (?, ?, ?)"
+  result, err := dbConn.Exec(statement, googleUser.Email, googleUser.UUID, googleUser.Email)
+  if err != nil {
+    return nil, err
+  }
+
+  id, err := result.LastInsertId()
+  if err != nil {
+    return nil, err
+  }
+  // return the user we ASSUME was inserted into db
+  return &User{
+    ID: id,
+    UUID: googleUser.UUID,
+    Email: googleUser.Email,
+    DisplayName: googleUser.Email,
+  }, nil
 }
-func GetUser(dbConn *sql.DB, uuid string) (*User, error) {
+func GetUserFromID(dbConn *sql.DB, id int) (*User, error) {
+  user := User{}
+  err := dbConn.QueryRow("SELECT id, display_name, uuid, email FROM users WHERE id=?", id).Scan(
+		&user.ID,
+		&user.DisplayName,
+		&user.UUID,
+		&user.Email,
+    )
+  if err != nil {
+    return nil, err
+  }
+  return &user, nil
+}
+func GetUserFromUUID(dbConn *sql.DB, uuid string) (*User, error) {
   user := User{}
   err := dbConn.QueryRow("SELECT id, display_name, uuid, email FROM users WHERE uuid=?", uuid).Scan(
 		&user.ID,

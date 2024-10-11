@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"log"
 
+	pkgerrors "github.com/pkg/errors"
 	"github.com/Ares1605/casual-chess-backend/db"
 	"github.com/Ares1605/casual-chess-backend/env"
 	"github.com/Ares1605/casual-chess-backend/models"
 	"github.com/Ares1605/casual-chess-backend/oauth"
 	"github.com/Ares1605/casual-chess-backend/security"
-	"github.com/Ares1605/casual-chess-backend/oauth/googlejwt"
 	"github.com/Ares1605/casual-chess-backend/oauth/googleuser"
 	"github.com/Ares1605/casual-chess-backend/security/securityerror"
 	"github.com/gin-gonic/gin"
@@ -20,7 +21,7 @@ import (
 type cacheResponse struct {
 	success bool
 	user *models.User
-	token *googlejwt.GoogleJWT
+	token string
 	firstTimeUser bool
 }
 
@@ -61,7 +62,7 @@ func main() {
 		if ok {
 			response := &cacheResponse{
 				success: false,
-				token: &googlejwt.GoogleJWT{},
+				token: "",
 				user: &models.User{},
 			}
 			oldDone <- response
@@ -102,7 +103,8 @@ func main() {
 		googleUser, err := oauth.GetGoogleUser(code)
 		if err != nil {
 			c.HTML(200, "error.html", gin.H{})
-			fmt.Println(err)
+			wrappedErr := pkgerrors.WithStack(err)
+    	log.Printf("Error occurred: %+v", wrappedErr)
 			return
 		}
 
@@ -112,27 +114,35 @@ func main() {
 			dbConn, err := db.Conn()
 			if err != nil {
 				c.HTML(200, "error.html", gin.H{})
-				fmt.Println(err)
+				wrappedErr := pkgerrors.WithStack(err)
+    		log.Printf("Error occurred: %+v", wrappedErr)
 				return
 			}
-			dbUser, err := models.GetUser(dbConn, googleUser.UUID)
+			dbUser, err := models.GetUserFromUUID(dbConn, googleUser.UUID)
 			firstTimeUser := false
 			if err != nil {
 				firstTimeUser = true
 				// db user doesn't exist, create one
-				models.CreateUser(dbConn, googleUser)
+				dbUser, err = models.CreateUser(dbConn, googleUser)
+				if err != nil {
+					c.HTML(200, "error.html", gin.H{})
+					wrappedErr := pkgerrors.WithStack(err)
+    			log.Printf("Error occurred: %+v", wrappedErr)
+					return
+				}
 			}
 			response := &cacheResponse{
 				success: true,
 				user: dbUser,
-				token: googleUser.JWT,
+				token: googleUser.EncodedJWT,
 				firstTimeUser: firstTimeUser,
 			}
 			done <- response
 			c.HTML(200, "redirect.html", gin.H{})
 		} else {
 			c.HTML(200, "error.html", gin.H{})
-			fmt.Println("never found the channel")
+			wrappedErr := pkgerrors.WithStack(errors.New("Never found the channel"))
+    	log.Printf("Error occurred: %+v", wrappedErr)
 		}
 	})
 	router.GET("/game/:id", func(c *gin.Context) {
@@ -152,6 +162,37 @@ func main() {
 			securityMnger.Reject(c, err.Error(), securityerror.Internal)
 		}
 		c.JSON(http.StatusOK, game)
+	})
+	router.GET("/user/uuid/:uuid", func(c *gin.Context) {
+		uuid := c.Param("uuid")
+
+		dbConn, err := db.Conn()
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)			
+		}
+		dbUser, err := models.GetUserFromUUID(dbConn, uuid)
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+		c.JSON(http.StatusOK, dbUser)
+	})
+	router.GET("/user/id/:id", func(c *gin.Context) {
+		idStr := c.Param("id")
+
+		id, err := strconv.Atoi(idStr)
+    if err != nil {
+    	securityMnger.Reject(c, "game id must be an integer", securityerror.Validation)
+    }
+
+		dbConn, err := db.Conn()
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)			
+		}
+		dbUser, err := models.GetUserFromID(dbConn, id)
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+		c.JSON(http.StatusOK, dbUser)
 	})
 	router.Run() // listen and serve on 0.0.0.0:8080
 }
