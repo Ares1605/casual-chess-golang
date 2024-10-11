@@ -1,17 +1,17 @@
-<h1>Casual Chess</h1>
-<img src="./public/logos/knight.svg" alt="knight">
-<button>Start</button>
+<img class="title" src="/logos/casual-chess.png" alt="casual chess">
+<img class="board" src="/logos/chess-board.png" alt="board">
+<!-- <button>Start</button> -->
 
 <style>
-  h1 {
-    font-size: 50px;
-    text-align: center;
-  }
-  img {
+  .title {
     display: block;
     margin: auto;
-    height: 300px;
-    transform: rotateY(180deg);
+    height: 100px;
+  }
+  .board {
+    display: block;
+    margin: auto;
+    width: 60%;
   }
   button {
     display: block;

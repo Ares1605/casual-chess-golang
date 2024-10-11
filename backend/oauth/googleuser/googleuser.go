@@ -7,6 +7,7 @@ import (
 type GoogleUser struct {
   UUID string
   Email string
+  Picture string
   DecodedJWT *googlejwt.GoogleJWT
   EncodedJWT string
 }

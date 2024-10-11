@@ -7,4 +7,6 @@ body {
     margin: 0;
     font-family: "Old Standard TT";
     color: #42210d;
+    height: 100%;
+    overflow: hidden; /* lock app */
 }
