@@ -79,6 +79,7 @@ func main() {
 			"success": response.success,
 			"user": response.user,
 			"token": response.token,
+			"first_time_user": response.firstTimeUser,
 		})
 	})
 	router.LoadHTMLGlob("templates/*")
@@ -89,7 +90,7 @@ func main() {
 			return
 		}
 
-		routeTo := "https://accounts.google.com/o/oauth2/v2/auth?client_id=" + env.Get("OAUTH_CLIENT_ID") + "&redirect_uri=http://localhost:8080/redirect&response_type=code&scope=https://www.googleapis.com/auth/userinfo.email openid&state=" + uuid
+		routeTo := "https://accounts.google.com/o/oauth2/v2/auth?client_id=" + env.Get("OAUTH_CLIENT_ID") + "&redirect_uri=http://localhost:8080/redirect&response_type=code&scope=https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid&state=" + uuid
 		c.HTML(200, "signin.html", gin.H{
 			"routeTo": routeTo,
 			"uuid": uuid,

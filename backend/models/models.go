@@ -14,6 +14,7 @@ type User struct {
   DisplayName string `json:"display_name"`
   UUID string `json:"uuid"`
   Email string `json:"email"`
+  ProfileURL string `json:"profile_url"`
 }
 
 func parsePiece(pieceStr string) (game.Piece, error) {
@@ -73,8 +74,8 @@ func GetGame(dbConn *sql.DB, id int) (*game.Game, error) {
   return &game, nil
 }
 func CreateUser(dbConn *sql.DB, googleUser *googleuser.GoogleUser) (*User, error) {
-  statement := "INSERT INTO users (display_name, uuid, email) VALUES (?, ?, ?)"
-  result, err := dbConn.Exec(statement, googleUser.Email, googleUser.UUID, googleUser.Email)
+  statement := "INSERT INTO users (display_name, uuid, email, profile_url) VALUES (?, ?, ?, ?)"
+  result, err := dbConn.Exec(statement, googleUser.Name, googleUser.UUID, googleUser.Email, googleUser.Profile)
   if err != nil {
     return nil, err
   }
@@ -93,11 +94,12 @@ func CreateUser(dbConn *sql.DB, googleUser *googleuser.GoogleUser) (*User, error
 }
 func GetUserFromID(dbConn *sql.DB, id int) (*User, error) {
   user := User{}
-  err := dbConn.QueryRow("SELECT id, display_name, uuid, email FROM users WHERE id=?", id).Scan(
+  err := dbConn.QueryRow("SELECT id, display_name, uuid, email, profile_url FROM users WHERE id=?", id).Scan(
 		&user.ID,
 		&user.DisplayName,
 		&user.UUID,
 		&user.Email,
+		&user.ProfileURL,
     )
   if err != nil {
     return nil, err
@@ -106,11 +108,12 @@ func GetUserFromID(dbConn *sql.DB, id int) (*User, error) {
 }
 func GetUserFromUUID(dbConn *sql.DB, uuid string) (*User, error) {
   user := User{}
-  err := dbConn.QueryRow("SELECT id, display_name, uuid, email FROM users WHERE uuid=?", uuid).Scan(
+  err := dbConn.QueryRow("SELECT id, display_name, uuid, email, profile_url FROM users WHERE uuid=?", uuid).Scan(
 		&user.ID,
 		&user.DisplayName,
 		&user.UUID,
 		&user.Email,
+		&user.ProfileURL,
     )
   if err != nil {
     return nil, err

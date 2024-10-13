@@ -7,7 +7,8 @@ import (
 type GoogleUser struct {
   UUID string
   Email string
-  Picture string
+  Name string
+  Profile string
   DecodedJWT *googlejwt.GoogleJWT
   EncodedJWT string
 }
@@ -20,6 +21,8 @@ func New(token string) (*GoogleUser, error) {
   return &GoogleUser {
     UUID: decodedJWT.Sub,
     Email: decodedJWT.Email,
+    Profile: decodedJWT.Picture,
+    Name: decodedJWT.Name,
     DecodedJWT: decodedJWT,
     EncodedJWT: token,
   }, nil
