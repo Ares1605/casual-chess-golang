@@ -2,21 +2,25 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"os/exec"
-  "runtime"
-  "strings"
-	"net/http"
 	"io/ioutil"
+	"net/http"
 	"net/url"
-	"log"
+	"os/exec"
+	"runtime"
+	"strings"
+
+	"github.com/Ares1605/casual-chess-frontend/apiresps"
 	"github.com/google/uuid"
+	"go.etcd.io/bbolt"
 )
 
 // App struct
 type App struct {
 	ctx context.Context
 }
+
 
 // NewApp creates a new App application struct
 func NewApp() *App {
@@ -33,29 +37,39 @@ func (a *App) startup(ctx context.Context) {
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
-func awaitSignIn() string {
+func storeJWT (token string) error {
+	return nil // TODO: complete
+}
+func awaitSignIn(customUUID uuid.UUID) bool {
 	client := &http.Client{}
   data := url.Values{}
-	req, err := http.NewRequest("GET", "http://localhost:8080/signin/await", strings.NewReader(data.Encode()))
+	req, err := http.NewRequest("GET", "http://localhost:8080/signin/await?uuid=" + customUUID.String(), strings.NewReader(data.Encode()))
 	if err != nil {
-		log.Fatal(err)
+		return false
 	}
 
 	req.Header.Add("Content-Type", "application/json")
 
-	fmt.Println("\n\n\n    Sneding!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n")
 	// send request
 	resp, err := client.Do(req)
 	if err != nil {
-	  log.Fatal(err)
+		return false
 	}
 	defer resp.Body.Close()
 
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-	  panic(err)
+		return false
 	}
-  return "response:" + string(body)
+	var parsed apiresps.AwaitSignIn
+	err = json.Unmarshal(body, &parsed)
+	if err != nil {
+		return false
+	}
+
+	storeJWT(parsed.Token)
+  return true
 }
 func (a *App) SignIn() string {
 	customUUID := uuid.New()
@@ -83,5 +97,5 @@ func (a *App) SignIn() string {
   	panic(err)
   }
 
-  return awaitSignIn()
+  return awaitSignIn(customUUID)
 }

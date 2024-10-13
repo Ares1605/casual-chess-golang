@@ -1,6 +1,14 @@
+<script lang="ts">
+  import { SignIn } from '../wailsjs/go/main/App.js';
+  const signIn = () => {
+    
+  }
+</script>
 <img class="title" src="/logos/casual-chess.png" alt="casual chess">
-<img class="board" src="/logos/chess-board.png" alt="board">
-<!-- <button>Start</button> -->
+<div>
+  <img class="board" src="/logos/chess-board.png" alt="board">
+  <button on:click={signIn}>Sign In</button>
+</div>
 
 <style>
   .title {
@@ -8,19 +16,34 @@
     margin: auto;
     height: 100px;
   }
-  .board {
+  div {
+    positive: relative;
     display: block;
     margin: auto;
-    width: 60%;
+    width: 600px;
+    height: 600px;
+  }
+  .board {
+    width: 100%;
+    height: 100%;
   }
   button {
-    display: block;
-    margin: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     font-size: 25px;
     border: 4px solid #42210d;
-    width: 150px;
+    width: 175px;
+    height: 50px;
     border-radius: 25px;
-    background-color: transparent;
+    background-color: #d4bea1;
     color: #42210d;
+    cursor: pointer;
+
+    &:active {
+      background-color: #42210d;
+      color: #d4bea1;
+    }
   }
 </style>
