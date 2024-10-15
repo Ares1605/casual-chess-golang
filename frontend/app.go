@@ -13,7 +13,6 @@ import (
 
 	"github.com/Ares1605/casual-chess-frontend/apiresps"
 	"github.com/google/uuid"
-	"go.etcd.io/bbolt"
 )
 
 // App struct
@@ -38,7 +37,11 @@ func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
 func storeJWT (token string) error {
-	return nil // TODO: complete
+	db, err := bbolt.Open("./bolt.db", 0600, nil)
+	if err != nil {
+  	return err
+	}
+	defer db.Close()
 }
 func awaitSignIn(customUUID uuid.UUID) bool {
 	client := &http.Client{}

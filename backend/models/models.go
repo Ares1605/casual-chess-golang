@@ -9,10 +9,15 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+type BasicUser struct {
+  ID int64 `json:"id"`
+  DisplayName string `json:"display_name"`
+  ProfileURL string `json:"profile_url"`
+}
 type User struct {
   ID int64 `json:"id"`
   DisplayName string `json:"display_name"`
-  UUID string `json:"uuid"`
+  googleID string `json:"google_id"`
   Email string `json:"email"`
   ProfileURL string `json:"profile_url"`
 }
@@ -74,8 +79,8 @@ func GetGame(dbConn *sql.DB, id int) (*game.Game, error) {
   return &game, nil
 }
 func CreateUser(dbConn *sql.DB, googleUser *googleuser.GoogleUser) (*User, error) {
-  statement := "INSERT INTO users (display_name, uuid, email, profile_url) VALUES (?, ?, ?, ?)"
-  result, err := dbConn.Exec(statement, googleUser.Name, googleUser.UUID, googleUser.Email, googleUser.Profile)
+  statement := "INSERT INTO users (display_name, google_id, email, profile_url) VALUES (?, ?, ?, ?)"
+  result, err := dbConn.Exec(statement, googleUser.Name, googleUser.ID, googleUser.Email, googleUser.Profile)
   if err != nil {
     return nil, err
   }
@@ -87,17 +92,17 @@ func CreateUser(dbConn *sql.DB, googleUser *googleuser.GoogleUser) (*User, error
   // return the user we ASSUME was inserted into db
   return &User{
     ID: id,
-    UUID: googleUser.UUID,
+    googleID: googleUser.ID,
     Email: googleUser.Email,
     DisplayName: googleUser.Email,
   }, nil
 }
 func GetUserFromID(dbConn *sql.DB, id int) (*User, error) {
   user := User{}
-  err := dbConn.QueryRow("SELECT id, display_name, uuid, email, profile_url FROM users WHERE id=?", id).Scan(
+  err := dbConn.QueryRow("SELECT id, display_name, google_id, email, profile_url FROM users WHERE id=?", id).Scan(
 		&user.ID,
 		&user.DisplayName,
-		&user.UUID,
+		&user.googleID,
 		&user.Email,
 		&user.ProfileURL,
     )
@@ -106,12 +111,28 @@ func GetUserFromID(dbConn *sql.DB, id int) (*User, error) {
   }
   return &user, nil
 }
-func GetUserFromUUID(dbConn *sql.DB, uuid string) (*User, error) {
+func GetFriends(dbConn *sql.DB, googleID string) (*[]BasicUser, error) {
+  var friends []BasicUser
+  rows, err := dbConn.Query("SELECT u.id, u.display_name, u.profile_url FROM friends f INNER JOIN users u on IF(f.invitee_google_id=?, f.invited_google_id, f.invitee_google_id)=u.google_id WHERE f.invitee_id=? or f.invited_google_id=?", googleID, googleID, googleID)
+  defer rows.Close()
+  if err != nil {
+    return nil, err
+  }
+  for rows.Next() {
+    friend := BasicUser{}
+    if err := rows.Scan(&friend.ID, &friend.DisplayName, &friend.ProfileURL); err != nil {
+      return nil, errors.New("Issue processing row in the GetFriends query result")
+    }
+    friends = append(friends, friend)
+  }
+  return &friends, nil
+}
+func GetUser(dbConn *sql.DB, googleID string) (*User, error) {
   user := User{}
-  err := dbConn.QueryRow("SELECT id, display_name, uuid, email, profile_url FROM users WHERE uuid=?", uuid).Scan(
+  err := dbConn.QueryRow("SELECT id, display_name, google_id, email, profile_url FROM users WHERE google_id=?", googleID).Scan(
 		&user.ID,
 		&user.DisplayName,
-		&user.UUID,
+		&user.googleID,
 		&user.Email,
 		&user.ProfileURL,
     )

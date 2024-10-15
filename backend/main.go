@@ -119,7 +119,7 @@ func main() {
     		log.Printf("Error occurred: %+v", wrappedErr)
 				return
 			}
-			dbUser, err := models.GetUserFromUUID(dbConn, googleUser.UUID)
+			dbUser, err := models.GetUser(dbConn, googleUser.ID)
 			firstTimeUser := false
 			if err != nil {
 				firstTimeUser = true
@@ -164,14 +164,14 @@ func main() {
 		}
 		c.JSON(http.StatusOK, game)
 	})
-	router.GET("/user/uuid/:uuid", func(c *gin.Context) {
-		uuid := c.Param("uuid")
+	router.GET("/user/:googleID", func(c *gin.Context) {
+		googleID := c.Param("googleID")
 
 		dbConn, err := db.Conn()
 		if err != nil {
 			securityMnger.Reject(c, err.Error(), securityerror.Internal)			
 		}
-		dbUser, err := models.GetUserFromUUID(dbConn, uuid)
+		dbUser, err := models.GetUser(dbConn, googleID)
 		if err != nil {
 			securityMnger.Reject(c, err.Error(), securityerror.Internal)
 		}
@@ -182,7 +182,7 @@ func main() {
 
 		id, err := strconv.Atoi(idStr)
     if err != nil {
-    	securityMnger.Reject(c, "game id must be an integer", securityerror.Validation)
+    	securityMnger.Reject(c, "user id must be an integer", securityerror.Validation)
     }
 
 		dbConn, err := db.Conn()
@@ -194,6 +194,31 @@ func main() {
 			securityMnger.Reject(c, err.Error(), securityerror.Internal)
 		}
 		c.JSON(http.StatusOK, dbUser)
+	})
+	router.GET("friend/request/user/:googleID", securityMnger.Authenticate, func(c *gin.Context) {
+		friendGoogleID := c.Param("googleID")
+
+		user, err := getGoogleUser(c)
+    if err != nil {
+      securityMnger.Reject(c, err.Error(), securityerror.Internal)
+      return
+    }
+		dbConn, err := db.Conn()
+		// var count int
+		dbConn.QueryRow("SELECT COUNT(*) FROM friends WHERE invitee_google_id=? AND invited_google_id=? OR invited_google_id=? AND invitee_google_id=?", user.ID, friendGoogleID, user.ID, friendGoogleID)
+	})
+	router.GET("user/:googleID/friends", func(c *gin.Context) {
+		googleID := c.Param("googleID")
+
+		dbConn, err := db.Conn()
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+		friends, err := models.GetFriends(dbConn, googleID)
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+		c.JSON(http.StatusOK, friends)
 	})
 	router.Run() // listen and serve on 0.0.0.0:8080
 }
