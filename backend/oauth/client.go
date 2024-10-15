@@ -1,7 +1,7 @@
 package oauth
 
 import (
-	"github.com/Ares1605/casual-chess-backend/env"
+	"github.com/Ares1605/casual-chess-golang/backend/env"
 )
 
 func getClientID() string {

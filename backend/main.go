@@ -8,13 +8,13 @@ import (
 	"log"
 
 	pkgerrors "github.com/pkg/errors"
-	"github.com/Ares1605/casual-chess-backend/db"
-	"github.com/Ares1605/casual-chess-backend/env"
-	"github.com/Ares1605/casual-chess-backend/models"
-	"github.com/Ares1605/casual-chess-backend/oauth"
-	"github.com/Ares1605/casual-chess-backend/security"
-	"github.com/Ares1605/casual-chess-backend/oauth/googleuser"
-	"github.com/Ares1605/casual-chess-backend/security/securityerror"
+	"github.com/Ares1605/casual-chess-golang/backend/db"
+	"github.com/Ares1605/casual-chess-golang/backend/env"
+	"github.com/Ares1605/casual-chess-golang/backend/models"
+	"github.com/Ares1605/casual-chess-golang/backend/oauth"
+	"github.com/Ares1605/casual-chess-golang/backend/security"
+	"github.com/Ares1605/casual-chess-golang/backend/oauth/googleuser"
+	"github.com/Ares1605/casual-chess-golang/backend/security/securityerror"
 	"github.com/gin-gonic/gin"
 )
 

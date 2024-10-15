@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"github.com/Ares1605/casual-chess-backend/oauth/googleuser"
+	"github.com/Ares1605/casual-chess-golang/backend/oauth/googleuser"
 )
 
 type tokenResponse struct {

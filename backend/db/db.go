@@ -4,7 +4,7 @@ import (
   "database/sql"
 	"errors"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/Ares1605/casual-chess-backend/env"
+	"github.com/Ares1605/casual-chess-golang/backend/env"
 )
 
 func Conn() (*sql.DB, error) {

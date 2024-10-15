@@ -1,4 +1,4 @@
-module github.com/Ares1605/casual-chess/backend
+module github.com/Ares1605/casual-chess-golang/backend
 
 go 1.23.0
 

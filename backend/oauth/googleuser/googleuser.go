@@ -1,7 +1,7 @@
 package googleuser
 
 import (
-	"github.com/Ares1605/casual-chess-backend/oauth/googlejwt"
+	"github.com/Ares1605/casual-chess-golang/backend/oauth/googlejwt"
 )
 
 type GoogleUser struct {

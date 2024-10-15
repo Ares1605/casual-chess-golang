@@ -5,9 +5,9 @@ import (
   "strconv"
 	"github.com/gin-gonic/gin"
   "time"
-  "github.com/Ares1605/casual-chess-backend/env"
-  "github.com/Ares1605/casual-chess-backend/security/securityerror"
-  "github.com/Ares1605/casual-chess-backend/oauth/googleuser"
+  "github.com/Ares1605/casual-chess-golang/backend/env"
+  "github.com/Ares1605/casual-chess-golang/backend/security/securityerror"
+  "github.com/Ares1605/casual-chess-golang/backend/oauth/googleuser"
   "fmt"
 )
 

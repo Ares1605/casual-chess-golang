@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/Ares1605/casual-chess-backend/game"
-	"github.com/Ares1605/casual-chess-backend/oauth/googleuser"
+	"github.com/Ares1605/casual-chess-golang/backend/game"
+	"github.com/Ares1605/casual-chess-golang/backend/oauth/googleuser"
 	_ "github.com/mattn/go-sqlite3"
 )
 
