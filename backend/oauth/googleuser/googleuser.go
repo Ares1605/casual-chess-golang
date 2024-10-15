@@ -27,4 +27,3 @@ func New(token string) (*GoogleUser, error) {
     EncodedJWT: token,
   }, nil
 }
-

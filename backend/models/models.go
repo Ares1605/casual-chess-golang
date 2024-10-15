@@ -21,6 +21,12 @@ type User struct {
   Email string `json:"email"`
   ProfileURL string `json:"profile_url"`
 }
+type PendingRow struct {
+  ID int64
+  InvitedGoogleID string
+  InviteeGoogleID string
+  DateCreated string
+}
 
 func parsePiece(pieceStr string) (game.Piece, error) {
   switch pieceStr {
@@ -140,4 +146,38 @@ func GetUser(dbConn *sql.DB, googleID string) (*User, error) {
     return nil, err
   }
   return &user, nil
+}
+func GetPendingRow(dbConn *sql.DB, invitedGoogleID string, inviteeGoogleID string) (*PendingRow, error) {
+  pendingRow := PendingRow{}
+  statement := "SELECT id, invited_google_id, invitee_google_id, date_created FROM pending_friends WHERE invited_google_id=? AND invitee_google_id=?"
+  err := dbConn.QueryRow(statement, invitedGoogleID, inviteeGoogleID).Scan(
+    &pendingRow.ID,
+    &pendingRow.InvitedGoogleID,
+    &pendingRow.InviteeGoogleID,
+    &pendingRow.DateCreated,
+    )
+  if err != nil {
+    return nil, err
+  }
+  return &pendingRow, nil
+}
+func IsFriends(dbConn *sql.DB, googleIDOne string, googleIDTwo string) (bool, error) {
+	statement := "SELECT COUNT(*) FROM friends WHERE invitee_google_id=? AND invited_google_id=? OR invited_google_id=? AND invitee_google_id=? LIMIT 1"
+	var count uint8
+	err := dbConn.QueryRow(statement, googleIDOne, googleIDTwo, googleIDOne, googleIDTwo).Scan(
+		&count,
+		)
+	if err != nil {
+	  return false, err
+	}
+	return count != 0, nil
+}
+func AddFriend(dbConn *sql.DB, invitedGoogleID string, inviteeGoogleID string) error {
+  statement := "INSERT INTO friends (invited_google_id, invitee_google_id) VALUES (?, ?)"
+  _, err := dbConn.Exec(statement, invitedGoogleID, inviteeGoogleID)
+  return err
+}
+func DeletePendingFriendRequest(dbConn *sql.DB, rowID int64) error {
+  _, err := dbConn.Exec("DELETE FROM pending_friends WHERE id=?", rowID)
+	return err
 }

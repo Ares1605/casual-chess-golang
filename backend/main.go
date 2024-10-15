@@ -162,7 +162,7 @@ func main() {
 		if err != nil {
 			securityMnger.Reject(c, err.Error(), securityerror.Internal)
 		}
-		c.JSON(http.StatusOK, game)
+		securityMnger.Accept(c, game, "")
 	})
 	router.GET("/user/:googleID", func(c *gin.Context) {
 		googleID := c.Param("googleID")
@@ -193,9 +193,50 @@ func main() {
 		if err != nil {
 			securityMnger.Reject(c, err.Error(), securityerror.Internal)
 		}
-		c.JSON(http.StatusOK, dbUser)
+		securityMnger.Accept(c, dbUser, "")
 	})
-	router.GET("friend/request/user/:googleID", securityMnger.Authenticate, func(c *gin.Context) {
+	router.GET("friend/request/deny/user/:googleID", securityMnger.Authenticate, func(c *gin.Context) {
+		friendGoogleID := c.Param("googleID")
+
+		user, err := getGoogleUser(c)
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+		dbConn, err := db.Conn()
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+		pendingRow, err := models.GetPendingRow(dbConn, friendGoogleID, user.ID)
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Custom)
+		}
+		if models.DeletePendingFriendRequest(dbConn, pendingRow.ID); err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+		securityMnger.Accept(c, nil, "")
+	})
+	router.GET("friend/request/accept/user/:googleID", securityMnger.Authenticate, func(c *gin.Context) {
+		friendGoogleID := c.Param("googleID")
+
+		user, err := getGoogleUser(c)
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+		dbConn, err := db.Conn()
+		pendingRow, err := models.GetPendingRow(dbConn, friendGoogleID, user.ID)
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Custom)
+		}
+		if models.DeletePendingFriendRequest(dbConn, pendingRow.ID); err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+		err = models.AddFriend(dbConn, friendGoogleID, user.ID)
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+		securityMnger.Accept(c, nil, "")
+	})
+	router.GET("friend/request/send/user/:googleID", securityMnger.Authenticate, func(c *gin.Context) {
 		friendGoogleID := c.Param("googleID")
 
 		user, err := getGoogleUser(c)
@@ -204,8 +245,36 @@ func main() {
       return
     }
 		dbConn, err := db.Conn()
-		// var count int
-		dbConn.QueryRow("SELECT COUNT(*) FROM friends WHERE invitee_google_id=? AND invited_google_id=? OR invited_google_id=? AND invitee_google_id=?", user.ID, friendGoogleID, user.ID, friendGoogleID)
+		var count uint8
+		err = dbConn.QueryRow("SELECT COUNT(*) FROM friends WHERE invitee_google_id=? AND invited_google_id=? OR invited_google_id=? AND invitee_google_id=? LIMIT 1", user.ID, friendGoogleID, user.ID, friendGoogleID).Scan(
+			&count,
+			)
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Custom)
+			return
+		}
+		if count != 0 {
+			securityMnger.Reject(c, "You're already friends!", securityerror.Custom)
+			return
+		}
+
+		err = dbConn.QueryRow("SELECT COUNT(*) FROM friends WHERE invited_google_id=? AND invitee_google_id=?", user.ID, friendGoogleID).Scan(
+			&count,
+			)
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Custom)
+			return
+		}
+		if count != 0 {
+			securityMnger.Reject(c, "You already have a pending friend request!", securityerror.Custom)
+			return
+		}
+
+		_, err = dbConn.Exec("INSERT INTO pending_friends (invited_google_id, invitee_google_id) VALUES (?, ?)", user.ID, friendGoogleID)
+  	if err != nil {
+  		securityMnger.Reject(c, err.Error(), securityerror.Internal)
+  	}
+  	securityMnger.Accept(c, nil, "")
 	})
 	router.GET("user/:googleID/friends", func(c *gin.Context) {
 		googleID := c.Param("googleID")
@@ -218,7 +287,7 @@ func main() {
 		if err != nil {
 			securityMnger.Reject(c, err.Error(), securityerror.Internal)
 		}
-		c.JSON(http.StatusOK, friends)
+		securityMnger.Accept(c, friends, "")
 	})
-	router.Run() // listen and serve on 0.0.0.0:8080
+	router.Run()
 }

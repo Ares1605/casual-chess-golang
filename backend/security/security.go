@@ -65,3 +65,15 @@ func (*Security) Reject(c *gin.Context, errorMessage string, errorType securitye
     },
   }) 
 }
+func (*Security) Accept(c *gin.Context, data any, message string) {
+  response := gin.H{
+    "success": true,
+    "data": data,
+  }
+  if message == "" {
+    response["message"] = nil
+  } else {
+    response["message"] = message
+  }
+  c.AbortWithStatusJSON(http.StatusOK, response) 
+}
