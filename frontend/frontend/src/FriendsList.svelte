@@ -2,6 +2,8 @@
   import { type Writable } from 'svelte/store';
   import type { apiresps, googleuser } from "../wailsjs/go/models"
   import { GetFriends } from "../wailsjs/go/main/App"
+  import AddFriend from './AddFriend.svelte';
+  import { addingFriend } from "./lib/addingFriend";
 
   export let user: Writable<googleuser.GoogleUser | null>;
   export let width: string;
@@ -13,29 +15,64 @@
       friends = result.data;
     }
   })
+  const addFriend = () => addingFriend.set(true);
 </script>
 <div style="width: {width}; height: {height}" class="parent">
-  <h2>Friends ({friends.length})</h2>
-  {#each friends as friend}
-  <div class="friend">
-    <img class="profile-picture" src={friend.profile_url} alt="Profile" />
-    <span class="name">{friend.display_name}</span>
+  <div class="nav-bar">
+    <h2>Friends ({friends.length})</h2>
+    <button on:click={addFriend} class="add-friend"></button>
   </div>
-  {/each}
+  <div class="friend-container">
+    {#each friends as friend}
+      <div class="friend">
+        <img class="profile-picture" src={friend.profile_url} alt="Profile" />
+        <span class="name">{friend.display_name}</span>
+      </div>
+    {/each}
+  </div>
 </div>
 <style>
   .parent {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     box-sizing: border-box;
-    padding: 10px;
-    background-color: yellow;
     border: 3px solid #42210d;
+    padding: 10px 5px;
     border-radius: 5px;
   }
+  .nav-bar {
+    width: 100%;
+    height: 25px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .nav-bar h2 {
+    display: inline-block;
+    margin: 0px;
+  }
+  .nav-bar .add-friend {
+    padding: 0;
+    height: 100%;
+    aspect-ratio: 1;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    background-image: url('/public/add-friend.svg');
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+  .friend-container {
+    position: relative;
+    left: 8px;
+    width: 100%;
+    height: auto;
+    overflow-y: scroll;
+  }
   .friend {
-    background-color: grey;
     display: flex;
     justify-content: left;
-    height: 65px;
+    height: 45px;
     align-items: center;
     gap: 5px;
   }
