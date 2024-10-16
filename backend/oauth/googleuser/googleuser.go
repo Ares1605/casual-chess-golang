@@ -5,12 +5,12 @@ import (
 )
 
 type GoogleUser struct {
-  ID string
-  Email string
-  Name string
-  Profile string
-  DecodedJWT *googlejwt.GoogleJWT
-  EncodedJWT string
+  ID string `json:"id"`
+  Email string `json:"email"`
+  Name string `json:"name"`
+  Profile string `json:"profile"`
+  DecodedJWT *googlejwt.GoogleJWT `json:"decoded_jwt"`
+  EncodedJWT string `json:"encoded_jwt"`
 }
 
 func New(token string) (*GoogleUser, error) {
