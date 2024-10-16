@@ -4,14 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os/exec"
 	"runtime"
 	"strings"
 
-	"github.com/Ares1605/casual-chess-frontend/apiresps"
+	"github.com/Ares1605/casual-chess-golang/frontend/apiresps"
+	"github.com/Ares1605/casual-chess-golang/frontend/kv"
+	"github.com/Ares1605/casual-chess-golang/backend/oauth/googlejwt"
+	"github.com/Ares1605/casual-chess-golang/backend/oauth/googleuser"
 	"github.com/google/uuid"
 )
 
@@ -36,19 +39,12 @@ func (a *App) startup(ctx context.Context) {
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
 }
-func storeJWT (token string) error {
-	db, err := bbolt.Open("./bolt.db", 0600, nil)
-	if err != nil {
-  	return err
-	}
-	defer db.Close()
-}
-func awaitSignIn(customUUID uuid.UUID) bool {
+func awaitSignIn(customUUID uuid.UUID) (*googleuser.GoogleUser, error) {
 	client := &http.Client{}
   data := url.Values{}
 	req, err := http.NewRequest("GET", "http://localhost:8080/signin/await?uuid=" + customUUID.String(), strings.NewReader(data.Encode()))
 	if err != nil {
-		return false
+		return &googleuser.GoogleUser{}, err
 	}
 
 	req.Header.Add("Content-Type", "application/json")
@@ -56,28 +52,30 @@ func awaitSignIn(customUUID uuid.UUID) bool {
 	// send request
 	resp, err := client.Do(req)
 	if err != nil {
-		return false
+		return &googleuser.GoogleUser{}, err
 	}
 	defer resp.Body.Close()
 
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return false
+		return &googleuser.GoogleUser{}, err
 	}
 	var parsed apiresps.AwaitSignIn
 	err = json.Unmarshal(body, &parsed)
 	if err != nil {
-		return false
+		return &googleuser.GoogleUser{}, err
 	}
 
-	storeJWT(parsed.Token)
-  return true
+	// store the jwt in a kv store
+	db, err := kv.GetDB()
+	defer db.Close()
+	if err == nil {
+		kv.Put(db, kv.JWT, []byte(parsed.Token))
+	}
+	return googleuser.New(parsed.Token)
 }
-func (a *App) SignIn() string {
-	customUUID := uuid.New()
-	url := "http://localhost:8080/signin?uuid=" + customUUID.String()
-
+func openURL(url string) error {
 	var cmd *exec.Cmd
 
 	switch runtime.GOOS {
@@ -95,10 +93,64 @@ func (a *App) SignIn() string {
       cmd = exec.Command("xdg-open", url)
     }
   }
-  err := cmd.Start()
+  return cmd.Start()
+}
+func (a *App) GetSession() string {
+	db, err := kv.GetDB()
+	if err != nil {
+		panic(err)
+	}
+	jwt, err := kv.Get(db, kv.JWT)
+	if err != nil {
+		panic(err)
+	}
+	googlejwt.New(string(jwt[:]))
+	return string(jwt[:])
+}
+func (a *App) SignIn() *googleuser.GoogleUser {
+	customUUID := uuid.New()
+	url := "http://localhost:8080/signin?uuid=" + customUUID.String()
+
+	if err := openURL(url); err != nil {
+		panic(err)
+	}
+
+  googleUser, err := awaitSignIn(customUUID)
   if err != nil {
   	panic(err)
   }
+  return googleUser
+}
+func (a *App) GetFriends(googleUser *googleuser.GoogleUser) apiresps.Friends {
+	client := &http.Client{}
+  data := url.Values{}
+	req, err := http.NewRequest("GET", "http://localhost:8080/friends", strings.NewReader(data.Encode()))
+	if err != nil {
+		panic(err)
+	}
 
-  return awaitSignIn(customUUID)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Bearer " + googleUser.EncodedJWT)
+	fmt.Println(googleUser.EncodedJWT)
+
+	// send request
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(body)
+	var parsed apiresps.Friends
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		panic(err)
+	}
+
+	// store the jwt in a kv store
+	return parsed
 }

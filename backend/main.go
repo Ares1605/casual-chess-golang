@@ -195,7 +195,7 @@ func main() {
 		}
 		securityMnger.Accept(c, dbUser, "")
 	})
-	router.GET("friend/request/deny/user/:googleID", securityMnger.Authenticate, func(c *gin.Context) {
+	router.GET("/friend/request/deny/user/:googleID", securityMnger.Authenticate, func(c *gin.Context) {
 		friendGoogleID := c.Param("googleID")
 
 		user, err := getGoogleUser(c)
@@ -215,7 +215,7 @@ func main() {
 		}
 		securityMnger.Accept(c, nil, "")
 	})
-	router.GET("friend/request/accept/user/:googleID", securityMnger.Authenticate, func(c *gin.Context) {
+	router.GET("/friend/request/accept/user/:googleID", securityMnger.Authenticate, func(c *gin.Context) {
 		friendGoogleID := c.Param("googleID")
 
 		user, err := getGoogleUser(c)
@@ -236,7 +236,7 @@ func main() {
 		}
 		securityMnger.Accept(c, nil, "")
 	})
-	router.GET("friend/request/send/user/:googleID", securityMnger.Authenticate, func(c *gin.Context) {
+	router.GET("/friend/request/send/user/:googleID", securityMnger.Authenticate, func(c *gin.Context) {
 		friendGoogleID := c.Param("googleID")
 
 		user, err := getGoogleUser(c)
@@ -276,7 +276,24 @@ func main() {
   	}
   	securityMnger.Accept(c, nil, "")
 	})
-	router.GET("user/:googleID/friends", func(c *gin.Context) {
+	router.GET("/friends", securityMnger.Authenticate, func(c *gin.Context) {
+		googleUser, err := getGoogleUser(c)
+    if err != nil {
+      securityMnger.Reject(c, err.Error(), securityerror.Internal)
+      return
+    }
+		dbConn, err := db.Conn()
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+		friends, err := models.GetFriends(dbConn, googleUser.ID)
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+
+		securityMnger.Accept(c, friends, "")
+	})
+	router.GET("/user/:googleID/friends", func(c *gin.Context) {
 		googleID := c.Param("googleID")
 
 		dbConn, err := db.Conn()
