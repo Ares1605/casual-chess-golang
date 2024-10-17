@@ -8,7 +8,6 @@
   export let height: string;
 </script>
 <div style="width: {width}; height: {height}" class="parent">
-  <div class="see-all">See all --></div>
 </div>
 <style>
   .parent {
