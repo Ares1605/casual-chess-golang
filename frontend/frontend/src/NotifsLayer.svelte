@@ -6,7 +6,7 @@
 <div class="tray">
   {#each $readNotifs as notif}
     <div class="notif show {notif.type}" in:fade out:fade>
-      <img src="./public/error-ico.svg" alt={notif.type}>
+      <img src="/error-ico.svg" alt={notif.type}>
       <div>
         <h2>{notif.title || notif.type}</h2>
         <span>{notif.body}</span>
