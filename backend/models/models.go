@@ -7,20 +7,23 @@ import (
 	"github.com/Ares1605/casual-chess-golang/backend/game"
 	"github.com/Ares1605/casual-chess-golang/backend/oauth/googleuser"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/google/uuid"
 )
 
 type BasicUser struct {
   ID int64 `json:"id"`
-  DisplayName string `json:"display_name"`
+  Username string `json:"username"`
   ProfileURL string `json:"profile_url"`
   GoogleID string `json:"google_id"`
 }
 type User struct {
   ID int64 `json:"id"`
-  DisplayName string `json:"display_name"`
+  Username string `json:"username"`
+  GoogleName string `json:"google_name"`
   GoogleID string `json:"google_id"`
   Email string `json:"email"`
   ProfileURL string `json:"profile_url"`
+  SetupComplete bool `json:"setup_complete"`
 }
 type PendingRow struct {
   ID int64
@@ -86,8 +89,9 @@ func GetGame(dbConn *sql.DB, id int) (*game.Game, error) {
   return &game, nil
 }
 func CreateUser(dbConn *sql.DB, googleUser *googleuser.GoogleUser) (*User, error) {
-  statement := "INSERT INTO users (display_name, google_id, email, profile_url) VALUES (?, ?, ?, ?)"
-  result, err := dbConn.Exec(statement, googleUser.Name, googleUser.ID, googleUser.Email, googleUser.Profile)
+  username := uuid.New().String()
+  statement := "INSERT INTO users (google_name, username, google_id, email, profile_url) VALUES (?, ?, ?, ?)"
+  result, err := dbConn.Exec(statement, googleUser.Name, username, googleUser.ID, googleUser.Email, googleUser.Profile)
   if err != nil {
     return nil, err
   }
@@ -101,17 +105,18 @@ func CreateUser(dbConn *sql.DB, googleUser *googleuser.GoogleUser) (*User, error
     ID: id,
     GoogleID: googleUser.ID,
     Email: googleUser.Email,
-    DisplayName: googleUser.Email,
+    GoogleName: googleUser.Email,
   }, nil
 }
 func GetUserFromID(dbConn *sql.DB, id int) (*User, error) {
   user := User{}
-  err := dbConn.QueryRow("SELECT id, display_name, google_id, email, profile_url FROM users WHERE id=?", id).Scan(
+  err := dbConn.QueryRow("SELECT id, google_name, google_id, email, profile_url, username FROM users WHERE id=?", id).Scan(
 		&user.ID,
-		&user.DisplayName,
+		&user.GoogleName,
 		&user.GoogleID,
 		&user.Email,
 		&user.ProfileURL,
+		&user.Username,
     )
   if err != nil {
     return nil, err
@@ -120,14 +125,14 @@ func GetUserFromID(dbConn *sql.DB, id int) (*User, error) {
 }
 func GetFriends(dbConn *sql.DB, googleID string) (*[]BasicUser, error) {
   friends := []BasicUser{}
-  rows, err := dbConn.Query("SELECT u.id, u.display_name, u.profile_url, u.google_id FROM friends f INNER JOIN users u on (CASE WHEN f.invitee_google_id=? THEN f.invited_google_id ELSE f.invitee_google_id END)=u.google_id WHERE f.invitee_google_id=? or f.invited_google_id=?", googleID, googleID, googleID)
+  rows, err := dbConn.Query("SELECT u.id, u.username, u.profile_url, u.google_id FROM friends f INNER JOIN users u on (CASE WHEN f.invitee_google_id=? THEN f.invited_google_id ELSE f.invitee_google_id END)=u.google_id WHERE f.invitee_google_id=? or f.invited_google_id=?", googleID, googleID, googleID)
   defer rows.Close()
   if err != nil {
     return nil, err
   }
   for rows.Next() {
     friend := BasicUser{}
-    if err := rows.Scan(&friend.ID, &friend.DisplayName, &friend.ProfileURL, &friend.GoogleID); err != nil {
+    if err := rows.Scan(&friend.ID, &friend.Username, &friend.ProfileURL, &friend.GoogleID); err != nil {
       return nil, errors.New("Issue processing row in the GetFriends query result")
     }
     friends = append(friends, friend)
@@ -135,7 +140,7 @@ func GetFriends(dbConn *sql.DB, googleID string) (*[]BasicUser, error) {
   for i := 0; i < 15; i++ {
     friends = append(friends, BasicUser{
       ID: 1,
-      DisplayName: "Gabby",
+      Username: "gabster123",
       ProfileURL: "https://play-lh.googleusercontent.com/U6z-kQNP24tjHIjHgJPrkVhfJDxAeVFyKBuuV4C9g2YNPKBgw6M_GrGAjsbhQFx0SI4",
       GoogleID: "12345",
     })
@@ -144,16 +149,20 @@ func GetFriends(dbConn *sql.DB, googleID string) (*[]BasicUser, error) {
 }
 func GetUser(dbConn *sql.DB, googleID string) (*User, error) {
   user := User{}
-  err := dbConn.QueryRow("SELECT id, display_name, google_id, email, profile_url FROM users WHERE google_id=?", googleID).Scan(
+  var setupCompleteTinyInt int8
+  err := dbConn.QueryRow("SELECT id, google_name, google_id, email, profile_url, username, setup_complete FROM users WHERE google_id=?", googleID).Scan(
 		&user.ID,
-		&user.DisplayName,
+		&user.GoogleName,
 		&user.GoogleID,
 		&user.Email,
 		&user.ProfileURL,
+		&user.Username,
+		&setupCompleteTinyInt,
     )
   if err != nil {
     return nil, err
   }
+  user.SetupComplete = setupCompleteTinyInt != 0
   return &user, nil
 }
 func GetPendingRow(dbConn *sql.DB, invitedGoogleID string, inviteeGoogleID string) (*PendingRow, error) {

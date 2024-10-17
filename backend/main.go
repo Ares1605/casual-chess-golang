@@ -11,6 +11,7 @@ import (
 	"github.com/Ares1605/casual-chess-golang/backend/db"
 	"github.com/Ares1605/casual-chess-golang/backend/env"
 	"github.com/Ares1605/casual-chess-golang/backend/models"
+	"github.com/Ares1605/casual-chess-golang/backend/user"
 	"github.com/Ares1605/casual-chess-golang/backend/oauth"
 	"github.com/Ares1605/casual-chess-golang/backend/security"
 	"github.com/Ares1605/casual-chess-golang/backend/oauth/googleuser"
@@ -75,12 +76,11 @@ func main() {
 
 		// wait for channel to finish
 		response := <- done
-		c.JSON(200, gin.H{
-			"success": response.success,
+		securityMnger.Accept(c, gin.H{
 			"user": response.user,
 			"token": response.token,
 			"first_time_user": response.firstTimeUser,
-		})
+		}, "Sign in complete!")
 	})
 	router.LoadHTMLGlob("templates/*")
 	router.GET("/signin", func(c *gin.Context) {
@@ -305,6 +305,27 @@ func main() {
 			securityMnger.Reject(c, err.Error(), securityerror.Internal)
 		}
 		securityMnger.Accept(c, friends, "")
+	})
+	router.GET("/user", securityMnger.Authenticate, func(c *gin.Context) {
+		googleUser, err := getGoogleUser(c)
+    if err != nil {
+      securityMnger.Reject(c, err.Error(), securityerror.Internal)
+      return
+    }
+
+		dbConn, err := db.Conn()
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)			
+		}
+		dbUser, err := models.GetUser(dbConn, googleUser.ID)
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+		fullUser, err := user.MergeUsers(googleUser, dbUser)
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+		c.JSON(http.StatusOK, fullUser)
 	})
 	router.Run()
 }
