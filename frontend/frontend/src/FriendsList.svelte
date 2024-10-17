@@ -60,7 +60,7 @@
     background-color: transparent;
     border: none;
     cursor: pointer;
-    background-image: url('/public/add-friend.svg');
+    background-image: url('./public/add-friend.svg');
     background-size: cover;
     background-repeat: no-repeat;
   }

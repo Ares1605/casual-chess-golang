@@ -12,7 +12,7 @@
 </script>
 <div class="parent">
   <div class="container">
-    <img src="/public/offline.svg" alt="Offline">
+    <img src="./public/offline.svg" alt="Offline">
     <div class="text-content">
       <h2>Server appears to be offline{".".repeat(dots - 1)}</h2>
       <span>Retrying in {retryTime} seconds</span>

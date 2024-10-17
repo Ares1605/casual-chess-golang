@@ -23,16 +23,16 @@
     </div>
     <HorizLine />
     <div class="send-cont">
-      <img src="/public/export.svg" alt="export">
+      <img src="./public/export.svg" alt="export">
       <div>
         <span bind:this={inviteCode}>1247189517358957</span>
         <button on:click={copyInviteCode} class="copy">
-          <img src="/public/copy.svg" alt="copy">
+          <img src="./public/copy.svg" alt="copy">
         </button>
       </div>
     </div>
     <div class="invite-cont">
-      <img src="/public/import.svg" alt="import">
+      <img src="./public/import.svg" alt="import">
       <div>
         <input>
       </div>

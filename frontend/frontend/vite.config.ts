@@ -8,13 +8,5 @@ export default defineConfig({
     alias: {
       'wailsjs': '/wailsjs'
     }
-  },
-  build: {
-    rollupOptions: {
-      external: [
-        // '/wailsjs/go/models',
-        // '/wailsjs/runtime'
-      ]
-    }
   }
 })
