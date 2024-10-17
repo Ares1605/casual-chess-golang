@@ -154,3 +154,11 @@ func (a *App) GetFriends(googleUser *googleuser.GoogleUser) apiresps.Friends {
 	// store the jwt in a kv store
 	return parsed
 }
+func (a *App) ServerOnline() bool {
+	resp, err := http.Get("http://localhost:8080/ping")
+  if err != nil {
+      return false
+  }
+  defer resp.Body.Close()
+  return true
+}

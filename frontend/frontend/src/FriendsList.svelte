@@ -3,7 +3,6 @@
   import type { apiresps, googleuser } from "../wailsjs/go/models"
   import { GetFriends } from "../wailsjs/go/main/App"
   import AddFriend from './AddFriend.svelte';
-  import { addingFriend } from "./lib/addingFriend";
 
   export let user: Writable<googleuser.GoogleUser | null>;
   export let width: string;
@@ -15,12 +14,15 @@
       friends = result.data;
     }
   })
-  const addFriend = () => addingFriend.set(true);
+  let addFriend = false;
 </script>
+{#if addFriend}
+  <AddFriend on:close={() => addFriend = false} />
+{/if}
 <div style="width: {width}; height: {height}" class="parent">
   <div class="nav-bar">
     <h2>Friends ({friends.length})</h2>
-    <button on:click={addFriend} class="add-friend"></button>
+    <button on:click={() => addFriend = true} class="add-friend"></button>
   </div>
   <div class="friend-container">
     {#each friends as friend}

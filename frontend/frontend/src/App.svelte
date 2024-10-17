@@ -2,11 +2,9 @@
   import type { googleuser } from "../wailsjs/go/models"
   import SignIn from './SignInComp.svelte';
   import Home from './Home.svelte';
-  import AddFriend from './AddFriend.svelte';
   import NotifsLayer from "./NotifsLayer.svelte";
+  import ServerCheck from "./ServerCheck.svelte";
   import { writable, type Writable } from 'svelte/store';
-  import { addingFriend } from "./lib/addingFriend"
-  import { notifs, TypesType } from "./lib/notifs";
 
   const user: Writable<googleuser.GoogleUser | null> = writable(null);
   let isAuthenticated = false;
@@ -18,11 +16,12 @@
 
 </script>
 <NotifsLayer />
-{#if $addingFriend}
-  <AddFriend />
-{/if}
 {#if !isAuthenticated}
-  <SignIn on:signIn={handleSignIn} />
+  <ServerCheck>
+    <SignIn on:signIn={handleSignIn} />
+  </ServerCheck>
 {:else}
-  <Home {user} />
+  <ServerCheck>
+    <Home {user} />
+  </ServerCheck>
 {/if}

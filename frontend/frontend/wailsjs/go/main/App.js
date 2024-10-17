@@ -14,6 +14,10 @@ export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
 
+export function ServerOnline() {
+  return window['go']['main']['App']['ServerOnline']();
+}
+
 export function SignIn() {
   return window['go']['main']['App']['SignIn']();
 }

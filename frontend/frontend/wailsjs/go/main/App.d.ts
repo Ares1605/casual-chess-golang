@@ -9,4 +9,6 @@ export function GetSession():Promise<string>;
 
 export function Greet(arg1:string):Promise<string>;
 
+export function ServerOnline():Promise<boolean>;
+
 export function SignIn():Promise<googleuser.GoogleUser>;
