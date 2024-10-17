@@ -12,8 +12,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       external: [
-        'wailsjs/go/models',
-        'wailsjs/runtime'
+        // '/wailsjs/go/models',
+        // '/wailsjs/runtime'
       ]
     }
   }
