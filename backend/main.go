@@ -325,7 +325,7 @@ func main() {
 		if err != nil {
 			securityMnger.Reject(c, err.Error(), securityerror.Internal)
 		}
-		c.JSON(http.StatusOK, fullUser)
+		securityMnger.Accept(c, fullUser, "")
 	})
 	router.Run()
 }
