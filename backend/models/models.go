@@ -90,7 +90,7 @@ func GetGame(dbConn *sql.DB, id int) (*game.Game, error) {
 }
 func CreateUser(dbConn *sql.DB, googleUser *googleuser.GoogleUser) (*User, error) {
   username := uuid.New().String()
-  statement := "INSERT INTO users (google_name, username, google_id, email, profile_url) VALUES (?, ?, ?, ?)"
+  statement := "INSERT INTO users (google_name, username, google_id, email, profile_url) VALUES (?, ?, ?, ?, ?)"
   result, err := dbConn.Exec(statement, googleUser.Name, username, googleUser.ID, googleUser.Email, googleUser.Profile)
   if err != nil {
     return nil, err
@@ -198,4 +198,15 @@ func AddFriend(dbConn *sql.DB, invitedGoogleID string, inviteeGoogleID string) e
 func DeletePendingFriendRequest(dbConn *sql.DB, rowID int64) error {
   _, err := dbConn.Exec("DELETE FROM pending_friends WHERE id=?", rowID)
 	return err
+}
+func UsernameExists(dbConn *sql.DB, username string) (bool, error) {
+  statement := "SELECT COUNT(*) FROM users WHERE username=? LIMIT 1"	
+  var count uint8
+  err := dbConn.QueryRow(statement, username).Scan(
+    &count,
+    )
+  if err != nil {
+    return false, err
+  }
+  return count != 0, nil
 }

@@ -9,6 +9,7 @@ import (
 
 	pkgerrors "github.com/pkg/errors"
 	"github.com/Ares1605/casual-chess-golang/backend/db"
+	"github.com/Ares1605/casual-chess-golang/backend/apiresps"
 	"github.com/Ares1605/casual-chess-golang/backend/env"
 	"github.com/Ares1605/casual-chess-golang/backend/models"
 	"github.com/Ares1605/casual-chess-golang/backend/user"
@@ -17,15 +18,33 @@ import (
 	"github.com/Ares1605/casual-chess-golang/backend/oauth/googleuser"
 	"github.com/Ares1605/casual-chess-golang/backend/security/securityerror"
 	"github.com/gin-gonic/gin"
+	"database/sql"
 )
 
 type cacheResponse struct {
 	success bool
-	user *models.User
+	user *user.User
 	token string
-	firstTimeUser bool
 }
 
+func getUser(dbConn *sql.DB, googleUser *googleuser.GoogleUser, createIfDBNone bool) (*user.User, error) {
+	dbUser, err := models.GetUser(dbConn, googleUser.ID)
+	if err != nil { // create user should only run if this is a did not fetch any results error...
+		if createIfDBNone {
+			dbUser, err = models.CreateUser(dbConn, googleUser)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
+	fullUser, err := user.MergeUsers(googleUser, dbUser)
+	if err != nil {
+		return nil, err
+	}
+	return fullUser, nil
+}
 func getGoogleUser(c *gin.Context) (*googleuser.GoogleUser, error) {
   value, exists := c.Get("googleuser")
   if !exists {
@@ -64,7 +83,7 @@ func main() {
 			response := &cacheResponse{
 				success: false,
 				token: "",
-				user: &models.User{},
+				user: &user.User{},
 			}
 			oldDone <- response
 		}
@@ -79,7 +98,6 @@ func main() {
 		securityMnger.Accept(c, gin.H{
 			"user": response.user,
 			"token": response.token,
-			"first_time_user": response.firstTimeUser,
 		}, "Sign in complete!")
 	})
 	router.LoadHTMLGlob("templates/*")
@@ -119,24 +137,16 @@ func main() {
     		log.Printf("Error occurred: %+v", wrappedErr)
 				return
 			}
-			dbUser, err := models.GetUser(dbConn, googleUser.ID)
-			firstTimeUser := false
+			user, err := getUser(dbConn, googleUser, true)
 			if err != nil {
-				firstTimeUser = true
-				// db user doesn't exist, create one
-				dbUser, err = models.CreateUser(dbConn, googleUser)
-				if err != nil {
-					c.HTML(200, "error.html", gin.H{})
-					wrappedErr := pkgerrors.WithStack(err)
-    			log.Printf("Error occurred: %+v", wrappedErr)
-					return
-				}
+				c.HTML(200, "error.html", gin.H{})
+				wrappedErr := pkgerrors.WithStack(err)
+    		log.Printf("Error occurred: %+v", wrappedErr)
 			}
 			response := &cacheResponse{
 				success: true,
-				user: dbUser,
+				user: user,
 				token: googleUser.EncodedJWT,
-				firstTimeUser: firstTimeUser,
 			}
 			done <- response
 			c.HTML(200, "redirect.html", gin.H{})
@@ -308,24 +318,53 @@ func main() {
 	})
 	router.GET("/user", securityMnger.Authenticate, func(c *gin.Context) {
 		googleUser, err := getGoogleUser(c)
+		
+		dbConn, err := db.Conn()
+		if err != nil {
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		}
+
+    user, err := getUser(dbConn, googleUser, false)
     if err != nil {
       securityMnger.Reject(c, err.Error(), securityerror.Internal)
       return
     }
+		securityMnger.Accept(c, user, "")
+	})
+	router.GET("/validate/username/:username", securityMnger.Authenticate, func(c *gin.Context) {
+
+		username := c.Param("username")
+
+		if len(username) < 4 {
+			securityMnger.Accept(c, &apiresps.ValidateUsernameData {
+				Valid: false,
+				Reason: apiresps.ReasonTooShort,
+			}, "")
+		}
+		if len(username) >= 16 {
+			securityMnger.Accept(c, &apiresps.ValidateUsernameData {
+				Valid: false,
+				Reason: apiresps.ReasonTooLong,
+			}, "")
+		}
 
 		dbConn, err := db.Conn()
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)			
+			securityMnger.Reject(c, err.Error(), securityerror.Internal)
 		}
-		dbUser, err := models.GetUser(dbConn, googleUser.ID)
+		exists, err := models.UsernameExists(dbConn, username)
 		if err != nil {
 			securityMnger.Reject(c, err.Error(), securityerror.Internal)
 		}
-		fullUser, err := user.MergeUsers(googleUser, dbUser)
-		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+		if exists {
+			securityMnger.Accept(c, &apiresps.ValidateUsernameData {
+				Valid: false,
+				Reason: apiresps.ReasonAlreadyExists,
+			}, "")
 		}
-		securityMnger.Accept(c, fullUser, "")
+		securityMnger.Accept(c, &apiresps.ValidateUsernameData {
+			Valid: true,
+		}, "")
 	})
 	router.Run()
 }
