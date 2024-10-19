@@ -199,6 +199,21 @@ func DeletePendingFriendRequest(dbConn *sql.DB, rowID int64) error {
   _, err := dbConn.Exec("DELETE FROM pending_friends WHERE id=?", rowID)
 	return err
 }
+func UpdateUsername(dbConn *sql.DB, googleUser *googleuser.GoogleUser, username string) (error) {
+  statement := "UPDATE users SET username=? WHERE google_id=?"
+  result, err := dbConn.Exec(statement, username, googleUser.ID)
+  if err != nil {
+    return err
+  }
+  affected, err := result.RowsAffected()
+  if err != nil {
+    return err
+  }
+  if affected == 0 {
+    return errors.New("No user was updated from the execute statement!")
+  }
+  return nil
+}
 func UsernameExists(dbConn *sql.DB, username string) (bool, error) {
   statement := "SELECT COUNT(*) FROM users WHERE username=? LIMIT 1"	
   var count uint8

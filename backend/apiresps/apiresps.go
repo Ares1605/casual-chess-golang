@@ -20,6 +20,14 @@ type ValidateUsername struct {
   Data ValidateUsernameData
   Message string `json:"message"`
 }
+type CreateUsernameData struct {
+  Username string `json:"username"`
+}
+type CreateUsername struct {
+  Success bool `json:"success"`
+  Data CreateUsernameData
+  Message string `json:"message"`
+}
 type User struct {
   Success bool   `json:"success"`
   Data user.User `json:"data"`

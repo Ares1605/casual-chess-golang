@@ -27,6 +27,27 @@ type cacheResponse struct {
 	token string
 }
 
+func validateUsername(dbConn *sql.DB, username string) (bool, apiresps.ReasonEnum, error) {
+	if len(username) < 4 {
+		return false, apiresps.ReasonTooShort, nil
+	}
+	if len(username) >= 16 {
+		return false, apiresps.ReasonTooLong, nil
+	}
+
+	dbConn, err := db.Conn()
+	if err != nil {
+		return false, apiresps.ReasonTooLong, err
+	}
+	exists, err := models.UsernameExists(dbConn, username)
+	if err != nil {
+		return false, apiresps.ReasonTooLong, err
+	}
+	if exists {
+		return false, apiresps.ReasonAlreadyExists, nil
+	}
+	return true, apiresps.ReasonAlreadyExists, nil
+}
 func getUser(dbConn *sql.DB, googleUser *googleuser.GoogleUser, createIfDBNone bool) (*user.User, error) {
 	dbUser, err := models.GetUser(dbConn, googleUser.ID)
 	if err != nil { // create user should only run if this is a did not fetch any results error...
@@ -61,13 +82,12 @@ func getGoogleUser(c *gin.Context) (*googleuser.GoogleUser, error) {
 
 func main() {
 	cache := make(map[string]chan *cacheResponse)
-	securityMnger := security.New()
 
 	router := gin.Default()
-	router.GET("/ping/auth", securityMnger.Authenticate, func(c *gin.Context) {
+	router.GET("/ping/auth", security.Authenticate, func(c *gin.Context) {
 		user, err := getGoogleUser(c)
     if err != nil {
-      securityMnger.Reject(c, err.Error(), securityerror.Internal)
+      security.Reject(c, err.Error(), securityerror.Internal)
       return
     }
 
@@ -95,7 +115,7 @@ func main() {
 
 		// wait for channel to finish
 		response := <- done
-		securityMnger.Accept(c, gin.H{
+		security.Accept(c, gin.H{
 			"user": response.user,
 			"token": response.token,
 		}, "Sign in complete!")
@@ -161,29 +181,29 @@ func main() {
 
 		id, err := strconv.Atoi(idStr)
     if err != nil {
-    	securityMnger.Reject(c, "game id must be an integer", securityerror.Validation)
+    	security.Reject(c, "game id must be an integer", securityerror.Validation)
     }
 
 		dbConn, err := db.Conn()
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)			
+			security.Reject(c, err.Error(), securityerror.Internal)			
 		}
 		game, err := models.GetGame(dbConn, id)
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 		}
-		securityMnger.Accept(c, game, "")
+		security.Accept(c, game, "")
 	})
 	router.GET("/user/:googleID", func(c *gin.Context) {
 		googleID := c.Param("googleID")
 
 		dbConn, err := db.Conn()
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)			
+			security.Reject(c, err.Error(), securityerror.Internal)			
 		}
 		dbUser, err := models.GetUser(dbConn, googleID)
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 		}
 		c.JSON(http.StatusOK, dbUser)
 	})
@@ -192,184 +212,201 @@ func main() {
 
 		id, err := strconv.Atoi(idStr)
     if err != nil {
-    	securityMnger.Reject(c, "user id must be an integer", securityerror.Validation)
+    	security.Reject(c, "user id must be an integer", securityerror.Validation)
     }
 
 		dbConn, err := db.Conn()
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)			
+			security.Reject(c, err.Error(), securityerror.Internal)			
 		}
 		dbUser, err := models.GetUserFromID(dbConn, id)
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 		}
-		securityMnger.Accept(c, dbUser, "")
+		security.Accept(c, dbUser, "")
 	})
-	router.GET("/friend/request/deny/user/:googleID", securityMnger.Authenticate, func(c *gin.Context) {
+	router.GET("/friend/request/deny/user/:googleID", security.Authenticate, func(c *gin.Context) {
 		friendGoogleID := c.Param("googleID")
 
 		user, err := getGoogleUser(c)
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 		}
 		dbConn, err := db.Conn()
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 		}
 		pendingRow, err := models.GetPendingRow(dbConn, friendGoogleID, user.ID)
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Custom)
+			security.Reject(c, err.Error(), securityerror.Custom)
 		}
 		if models.DeletePendingFriendRequest(dbConn, pendingRow.ID); err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 		}
-		securityMnger.Accept(c, nil, "")
+		security.Accept(c, nil, "")
 	})
-	router.GET("/friend/request/accept/user/:googleID", securityMnger.Authenticate, func(c *gin.Context) {
+	router.GET("/friend/request/accept/user/:googleID", security.Authenticate, func(c *gin.Context) {
 		friendGoogleID := c.Param("googleID")
 
 		user, err := getGoogleUser(c)
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 		}
 		dbConn, err := db.Conn()
 		pendingRow, err := models.GetPendingRow(dbConn, friendGoogleID, user.ID)
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Custom)
+			security.Reject(c, err.Error(), securityerror.Custom)
 		}
 		if models.DeletePendingFriendRequest(dbConn, pendingRow.ID); err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 		}
 		err = models.AddFriend(dbConn, friendGoogleID, user.ID)
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 		}
-		securityMnger.Accept(c, nil, "")
+		security.Accept(c, nil, "")
 	})
-	router.GET("/friend/request/send/user/:googleID", securityMnger.Authenticate, func(c *gin.Context) {
+	router.GET("/friend/request/send/user/:googleID", security.Authenticate, func(c *gin.Context) {
 		friendGoogleID := c.Param("googleID")
 
-		user, err := getGoogleUser(c)
+		googleUser, err := getGoogleUser(c)
     if err != nil {
-      securityMnger.Reject(c, err.Error(), securityerror.Internal)
+      security.Reject(c, err.Error(), securityerror.Internal)
       return
     }
 		dbConn, err := db.Conn()
 		var count uint8
-		err = dbConn.QueryRow("SELECT COUNT(*) FROM friends WHERE invitee_google_id=? AND invited_google_id=? OR invited_google_id=? AND invitee_google_id=? LIMIT 1", user.ID, friendGoogleID, user.ID, friendGoogleID).Scan(
+		err = dbConn.QueryRow("SELECT COUNT(*) FROM friends WHERE invitee_google_id=? AND invited_google_id=? OR invited_google_id=? AND invitee_google_id=? LIMIT 1", googleUser.ID, friendGoogleID, googleUser.ID, friendGoogleID).Scan(
 			&count,
 			)
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Custom)
+			security.Reject(c, err.Error(), securityerror.Custom)
 			return
 		}
 		if count != 0 {
-			securityMnger.Reject(c, "You're already friends!", securityerror.Custom)
+			security.Reject(c, "You're already friends!", securityerror.Custom)
 			return
 		}
 
-		err = dbConn.QueryRow("SELECT COUNT(*) FROM friends WHERE invited_google_id=? AND invitee_google_id=?", user.ID, friendGoogleID).Scan(
+		err = dbConn.QueryRow("SELECT COUNT(*) FROM friends WHERE invited_google_id=? AND invitee_google_id=?", googleUser.ID, friendGoogleID).Scan(
 			&count,
 			)
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Custom)
+			security.Reject(c, err.Error(), securityerror.Custom)
 			return
 		}
 		if count != 0 {
-			securityMnger.Reject(c, "You already have a pending friend request!", securityerror.Custom)
+			security.Reject(c, "You already have a pending friend request!", securityerror.Custom)
 			return
 		}
 
-		_, err = dbConn.Exec("INSERT INTO pending_friends (invited_google_id, invitee_google_id) VALUES (?, ?)", user.ID, friendGoogleID)
+		_, err = dbConn.Exec("INSERT INTO pending_friends (invited_google_id, invitee_google_id) VALUES (?, ?)", googleUser.ID, friendGoogleID)
   	if err != nil {
-  		securityMnger.Reject(c, err.Error(), securityerror.Internal)
+  		security.Reject(c, err.Error(), securityerror.Internal)
   	}
-  	securityMnger.Accept(c, nil, "")
+  	security.Accept(c, nil, "")
 	})
-	router.GET("/friends", securityMnger.Authenticate, func(c *gin.Context) {
+	router.GET("/friends", security.Authenticate, func(c *gin.Context) {
 		googleUser, err := getGoogleUser(c)
     if err != nil {
-      securityMnger.Reject(c, err.Error(), securityerror.Internal)
+      security.Reject(c, err.Error(), securityerror.Internal)
       return
     }
 		dbConn, err := db.Conn()
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 		}
 		friends, err := models.GetFriends(dbConn, googleUser.ID)
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 		}
 
-		securityMnger.Accept(c, friends, "")
+		security.Accept(c, friends, "")
 	})
 	router.GET("/user/:googleID/friends", func(c *gin.Context) {
 		googleID := c.Param("googleID")
 
 		dbConn, err := db.Conn()
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 		}
 		friends, err := models.GetFriends(dbConn, googleID)
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 		}
-		securityMnger.Accept(c, friends, "")
+		security.Accept(c, friends, "")
 	})
-	router.GET("/user", securityMnger.Authenticate, func(c *gin.Context) {
+	router.GET("/user", security.Authenticate, func(c *gin.Context) {
 		googleUser, err := getGoogleUser(c)
+		if err != nil {
+			security.Reject(c, err.Error(), securityerror.Internal)
+		}
 		
 		dbConn, err := db.Conn()
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 		}
 
     user, err := getUser(dbConn, googleUser, false)
     if err != nil {
-      securityMnger.Reject(c, err.Error(), securityerror.Internal)
+      security.Reject(c, err.Error(), securityerror.Internal)
       return
     }
-		securityMnger.Accept(c, user, "")
+		security.Accept(c, user, "")
 	})
-	router.GET("/validate/username/:username", securityMnger.Authenticate, func(c *gin.Context) {
+	router.GET("/create/username/:username", security.Authenticate, func (c *gin.Context) {
+		googleUser, err := getGoogleUser(c)
 
 		username := c.Param("username")
 
-		if len(username) < 4 {
-			securityMnger.Accept(c, &apiresps.ValidateUsernameData {
-				Valid: false,
-				Reason: apiresps.ReasonTooShort,
-			}, "")
+		dbConn, err := db.Conn()
+		if err != nil {
+			security.Reject(c, err.Error(), securityerror.Internal)
 			return
 		}
-		if len(username) >= 16 {
-			securityMnger.Accept(c, &apiresps.ValidateUsernameData {
-				Valid: false,
-				Reason: apiresps.ReasonTooLong,
-			}, "")
+		valid, reason, err := validateUsername(dbConn, username)
+		if err != nil {
+			security.Reject(c, err.Error(), securityerror.Internal)
+			return
+		}
+		if !valid {
+			security.Reject(c, string(reason), securityerror.Custom)
 			return
 		}
 
+		// if username is valid, attempt to create it
+		err = models.UpdateUsername(dbConn, googleUser, username)
+		if err != nil {
+			security.Reject(c, err.Error(), securityerror.Internal)
+			return
+		}
+		security.Accept(c, &apiresps.CreateUsernameData{
+			Username: username,
+		}, "")
+	})
+	router.GET("/validate/username/:username", security.Authenticate, func(c *gin.Context) {
+		username := c.Param("username")
+
 		dbConn, err := db.Conn()
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 			return
 		}
-		exists, err := models.UsernameExists(dbConn, username)
+		valid, reason, err := validateUsername(dbConn, username)
 		if err != nil {
-			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			security.Reject(c, err.Error(), securityerror.Internal)
 			return
 		}
-		if exists {
-			securityMnger.Accept(c, &apiresps.ValidateUsernameData {
-				Valid: false,
-				Reason: apiresps.ReasonAlreadyExists,
+		if valid {
+			security.Accept(c, &apiresps.ValidateUsernameData{
+				Valid: true,
 			}, "")
-			return
+		} else {
+			security.Accept(c, &apiresps.ValidateUsernameData{
+				Valid: false,
+				Reason: reason,
+			}, "")
 		}
-		securityMnger.Accept(c, &apiresps.ValidateUsernameData {
-			Valid: true,
-		}, "")
 	})
 	router.Run()
 }
