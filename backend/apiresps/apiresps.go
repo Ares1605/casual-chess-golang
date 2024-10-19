@@ -46,4 +46,6 @@ type Friends struct {
   Success bool `json:"success"`
   Data []models.User `json:"data"`
 }
-
+type Ping struct {
+  Message string `json:"message"`
+}
