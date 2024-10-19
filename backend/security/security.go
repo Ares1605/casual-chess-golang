@@ -50,6 +50,9 @@ func Authenticate(c *gin.Context) {
   c.Set("googleuser", reqstedUser)
   c.Next()
 }
+func RejectHTML(c *gin.Context, err error) {
+  c.HTML(200, "error.html", gin.H{})
+}
 func RejectError(c *gin.Context, err error) {
   Reject(c, err.Error(), securityerror.Internal)
 }

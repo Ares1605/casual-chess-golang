@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"log"
+	"github.com/gin-gonic/gin"
+	"database/sql"
 
-	pkgerrors "github.com/pkg/errors"
 	"github.com/Ares1605/casual-chess-golang/backend/db"
 	"github.com/Ares1605/casual-chess-golang/backend/apiresps"
 	"github.com/Ares1605/casual-chess-golang/backend/env"
@@ -17,8 +17,6 @@ import (
 	"github.com/Ares1605/casual-chess-golang/backend/security"
 	"github.com/Ares1605/casual-chess-golang/backend/oauth/googleuser"
 	"github.com/Ares1605/casual-chess-golang/backend/security/securityerror"
-	"github.com/gin-gonic/gin"
-	"database/sql"
 )
 
 type cacheResponse struct {
@@ -141,9 +139,7 @@ func main() {
 		uuid := c.Query("state")
 		googleUser, err := oauth.GetGoogleUser(code)
 		if err != nil {
-			c.HTML(200, "error.html", gin.H{})
-			wrappedErr := pkgerrors.WithStack(err)
-    	log.Printf("Error occurred: %+v", wrappedErr)
+			security.RejectHTML(c, err)
 			return
 		}
 
@@ -152,16 +148,12 @@ func main() {
 		if ok {
 			dbConn, err := db.Conn()
 			if err != nil {
-				c.HTML(200, "error.html", gin.H{})
-				wrappedErr := pkgerrors.WithStack(err)
-    		log.Printf("Error occurred: %+v", wrappedErr)
+				security.RejectHTML(c, err)
 				return
 			}
 			user, err := getUser(dbConn, googleUser, true)
 			if err != nil {
-				c.HTML(200, "error.html", gin.H{})
-				wrappedErr := pkgerrors.WithStack(err)
-    		log.Printf("Error occurred: %+v", wrappedErr)
+				security.RejectHTML(c, err)
 			}
 			response := &cacheResponse{
 				success: true,
@@ -171,9 +163,8 @@ func main() {
 			done <- response
 			c.HTML(200, "redirect.html", gin.H{})
 		} else {
-			c.HTML(200, "error.html", gin.H{})
-			wrappedErr := pkgerrors.WithStack(errors.New("Never found the channel"))
-    	log.Printf("Error occurred: %+v", wrappedErr)
+			err = errors.New("Never found the channel")
+			security.RejectHTML(c, err)
 		}
 	})
 	router.GET("/game/:id", func(c *gin.Context) {
