@@ -5,6 +5,7 @@ import (
   "strconv"
 	"github.com/gin-gonic/gin"
   "time"
+	pkgerrors "github.com/pkg/errors"
   "github.com/Ares1605/casual-chess-golang/backend/env"
   "github.com/Ares1605/casual-chess-golang/backend/security/securityerror"
   "github.com/Ares1605/casual-chess-golang/backend/oauth/googleuser"
@@ -51,7 +52,11 @@ func Authenticate(c *gin.Context) {
   c.Next()
 }
 func RejectHTML(c *gin.Context, err error) {
-  c.HTML(200, "error.html", gin.H{})
+  stackTrace := fmt.Sprintf("%+v", pkgerrors.WithStack(err))
+  c.HTML(200, "error.html", gin.H{
+    "stack_trace": stackTrace,
+    "error": err.Error(),
+  })
 }
 func RejectError(c *gin.Context, err error) {
   Reject(c, err.Error(), securityerror.Internal)

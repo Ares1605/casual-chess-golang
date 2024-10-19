@@ -11,16 +11,19 @@ const (
   ReasonTooLong       ValidateReasonEnum = "Username must be less than 16 characters!"
   ReasonTooShort      ValidateReasonEnum = "Username must be more than 3 characters!"
 )
+
+type ValidateUsernameData struct {
+  Valid bool `json:"valid"`
+  Reason ValidateReasonEnum `json:"reason,omitempty"`
+}
 type ValidateUsername struct {
-  Resp[struct {
-    Valid bool `json:"valid"`
-    Reason ValidateReasonEnum `json:"reason,omitempty"`
-  }]
+  Resp[ValidateUsernameData]
+}
+type CreateUsernameData struct {
+  Username string `json:"username"`
 }
 type CreateUsername struct {
-  Resp[struct {
-    Username string `json:"username"`
-  }]
+  Resp[CreateUsernameData]
 }
 type User struct {
   Resp[user.User]

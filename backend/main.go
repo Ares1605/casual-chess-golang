@@ -25,7 +25,7 @@ type cacheResponse struct {
 	token string
 }
 
-func validateUsername(dbConn *sql.DB, username string) (bool, apiresps.ReasonEnum, error) {
+func validateUsername(dbConn *sql.DB, username string) (bool, apiresps.ValidateReasonEnum, error) {
 	if len(username) < 4 {
 		return false, apiresps.ReasonTooShort, nil
 	}
@@ -48,7 +48,7 @@ func validateUsername(dbConn *sql.DB, username string) (bool, apiresps.ReasonEnu
 }
 func getUser(dbConn *sql.DB, googleUser *googleuser.GoogleUser, createIfDBNone bool) (*user.User, error) {
 	dbUser, err := models.GetUser(dbConn, googleUser.ID)
-	if err != nil { // create user should only run if this is a did not fetch any results error...
+	if err == sql.ErrNoRows { // create user should only run if this is a did not fetch any results error...
 		if createIfDBNone {
 			dbUser, err = models.CreateUser(dbConn, googleUser)
 			if err != nil {
@@ -57,6 +57,8 @@ func getUser(dbConn *sql.DB, googleUser *googleuser.GoogleUser, createIfDBNone b
 		} else {
 			return nil, err
 		}
+	} else if err != nil {
+		return nil, err
 	}
 	fullUser, err := user.MergeUsers(googleUser, dbUser)
 	if err != nil {

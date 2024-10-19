@@ -20,9 +20,12 @@ type Resp[T any] struct {
   baseResp
   Data T `json:"data,omitempty"`
 }
+type JunkResp struct {
+  Resp[any]
+}
 
 // UnmarshalJSON is a generic function to unmarshal any APIResponse
-func UnmarshalAPIResponse[T any](data []byte) (*Resp[T], error) {
+func UnmarshalResp[T any](data []byte) (*Resp[T], error) {
   var response Resp[T]
   err := json.Unmarshal(data, &response)
   if err != nil {
