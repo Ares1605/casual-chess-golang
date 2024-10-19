@@ -340,27 +340,32 @@ func main() {
 				Valid: false,
 				Reason: apiresps.ReasonTooShort,
 			}, "")
+			return
 		}
 		if len(username) >= 16 {
 			securityMnger.Accept(c, &apiresps.ValidateUsernameData {
 				Valid: false,
 				Reason: apiresps.ReasonTooLong,
 			}, "")
+			return
 		}
 
 		dbConn, err := db.Conn()
 		if err != nil {
 			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			return
 		}
 		exists, err := models.UsernameExists(dbConn, username)
 		if err != nil {
 			securityMnger.Reject(c, err.Error(), securityerror.Internal)
+			return
 		}
 		if exists {
 			securityMnger.Accept(c, &apiresps.ValidateUsernameData {
 				Valid: false,
 				Reason: apiresps.ReasonAlreadyExists,
 			}, "")
+			return
 		}
 		securityMnger.Accept(c, &apiresps.ValidateUsernameData {
 			Valid: true,

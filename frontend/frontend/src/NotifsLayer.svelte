@@ -19,7 +19,6 @@
 <style>
   .tray {
     z-index: 4;
-    visibility: hidden;
     position: fixed;
     right: 15px;
     bottom: 15px;

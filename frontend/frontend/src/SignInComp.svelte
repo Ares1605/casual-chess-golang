@@ -1,16 +1,25 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { SignIn } from '../wailsjs/go/main/App.js';
-  import { googleuser } from 'wailsjs/go/models';
+  import { user } from 'wailsjs/go/models';
+  import { notifs, TypesType } from './lib/notifs';
 
   const dispatch = createEventDispatcher<{
-    signIn: googleuser.GoogleUser;
+    signIn: user.User;
   }>();
 
   function signIn() {
-    SignIn().then(user => {
-      dispatch('signIn', user)
-    })
+    SignIn()
+      .then(user => {
+        dispatch("signIn", user);
+      })
+      .catch(error => {
+        notifs.add({
+          type: TypesType.Error,
+          title: "Failed to sign in",
+          body: "Description: " + String(error)
+        });
+      });
   }
 </script>
 <img class="title" src="/logos/casual-chess.png" alt="casual chess">

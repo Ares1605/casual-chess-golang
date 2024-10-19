@@ -1,15 +1,14 @@
 <script lang="ts">
-  import { type Writable } from 'svelte/store';
-  import type { apiresps, googleuser } from "../wailsjs/go/models"
+  import type { apiresps } from "../wailsjs/go/models"
   import { GetFriends } from "../wailsjs/go/main/App"
   import AddFriend from './AddFriend.svelte';
+  import { user } from "./lib/user";
 
-  export let user: Writable<googleuser.GoogleUser | null>;
   export let width: string;
   export let height: string;
 
   let friends: apiresps.Friends["data"] = [];
-  GetFriends($user).then(result => {
+  GetFriends($user, $user.encoded_jwt).then(result => {
     if (result.success) {
       friends = result.data;
     }
@@ -28,7 +27,7 @@
     {#each friends as friend}
       <div class="friend">
         <img class="profile-picture" src={friend.profile_url} alt="Profile" />
-        <span class="name">{friend.display_name}</span>
+        <span class="name">{friend.google_name}</span>
       </div>
     {/each}
   </div>

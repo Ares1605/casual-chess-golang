@@ -7,8 +7,9 @@
   div {
     margin: auto;
 
-    height: 0px;
-    border: 3px solid #42210d;
+    height: 1px;
+    border: 1px solid #42210d;
+    background-color: #42210d;
     border-radius: 3px;
   }
 </style>

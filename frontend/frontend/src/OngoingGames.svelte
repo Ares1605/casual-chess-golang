@@ -1,8 +1,5 @@
 <script lang="ts">
-  import type { googleuser } from "../wailsjs/go/models"
-  import { type Writable } from 'svelte/store';
-
-  export let user: Writable<googleuser.GoogleUser | null>;
+  import { user } from "./lib/user";
 
   export let width: string;
   export let height: string;

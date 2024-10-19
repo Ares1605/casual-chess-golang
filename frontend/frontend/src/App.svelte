@@ -1,27 +1,35 @@
 <script lang="ts">
-  import type { googleuser } from "../wailsjs/go/models"
   import SignIn from './SignInComp.svelte';
   import Home from './Home.svelte';
   import NotifsLayer from "./NotifsLayer.svelte";
   import ServerCheck from "./ServerCheck.svelte";
-  import { writable, type Writable } from 'svelte/store';
+  import SetupAccount from "./SetupAccount.svelte";
+  import { user } from "./lib/user";
+  import { user as userModel } from "../wailsjs/go/models";
 
-  const user: Writable<googleuser.GoogleUser | null> = writable(null);
-  let isAuthenticated = false;
-
-  function handleSignIn(event: CustomEvent<googleuser.GoogleUser>) {
+  enum AuthStatuses {
+    Authenticated,
+    SigningIn,
+    InitialSetup
+  };
+  let authStatus = AuthStatuses.SigningIn;
+  function handleSignIn(event: CustomEvent<userModel.User>) {
     $user = event.detail;
-    isAuthenticated = true;
+    if ($user.setup_complete)  {
+      authStatus = AuthStatuses.Authenticated
+    } else {
+      authStatus = AuthStatuses.InitialSetup
+    }
   }
 
 </script>
 <NotifsLayer />
-{#if !isAuthenticated}
-  <ServerCheck>
+<ServerCheck>
+  {#if authStatus === AuthStatuses.SigningIn}
     <SignIn on:signIn={handleSignIn} />
-  </ServerCheck>
-{:else}
-  <ServerCheck>
-    <Home {user} />
-  </ServerCheck>
-{/if}
+  {:else if authStatus === AuthStatuses.InitialSetup}
+    <SetupAccount />
+  {:else}
+      <Home />
+  {/if}
+</ServerCheck>
