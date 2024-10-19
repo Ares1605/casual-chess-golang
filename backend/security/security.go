@@ -50,12 +50,15 @@ func Authenticate(c *gin.Context) {
   c.Set("googleuser", reqstedUser)
   c.Next()
 }
-func Reject(c *gin.Context, errorMessage string, errorType securityerror.ErrorType) {
-  c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+func RejectError(c *gin.Context, err error) {
+  Reject(c, err.Error(), securityerror.Internal)
+}
+func Reject(c *gin.Context, message string, errorType securityerror.ErrorType) {
+  c.AbortWithStatusJSON(http.StatusOK, gin.H{
     "success": false,
     "error": gin.H{
       "type": errorType.String(),
-      "message": errorMessage,
+      "message": message,
     },
   }) 
 }

@@ -87,7 +87,7 @@ func main() {
 	router.GET("/ping/auth", security.Authenticate, func(c *gin.Context) {
 		user, err := getGoogleUser(c)
     if err != nil {
-      security.Reject(c, err.Error(), securityerror.Internal)
+      security.RejectError(c, err)
       return
     }
 
@@ -186,11 +186,11 @@ func main() {
 
 		dbConn, err := db.Conn()
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)			
+			security.RejectError(c, err)			
 		}
 		game, err := models.GetGame(dbConn, id)
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 		}
 		security.Accept(c, game, "")
 	})
@@ -199,11 +199,11 @@ func main() {
 
 		dbConn, err := db.Conn()
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)			
+			security.RejectError(c, err)			
 		}
 		dbUser, err := models.GetUser(dbConn, googleID)
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 		}
 		c.JSON(http.StatusOK, dbUser)
 	})
@@ -217,11 +217,11 @@ func main() {
 
 		dbConn, err := db.Conn()
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)			
+			security.RejectError(c, err)			
 		}
 		dbUser, err := models.GetUserFromID(dbConn, id)
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 		}
 		security.Accept(c, dbUser, "")
 	})
@@ -230,18 +230,18 @@ func main() {
 
 		user, err := getGoogleUser(c)
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 		}
 		dbConn, err := db.Conn()
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 		}
 		pendingRow, err := models.GetPendingRow(dbConn, friendGoogleID, user.ID)
 		if err != nil {
 			security.Reject(c, err.Error(), securityerror.Custom)
 		}
 		if models.DeletePendingFriendRequest(dbConn, pendingRow.ID); err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 		}
 		security.Accept(c, nil, "")
 	})
@@ -250,7 +250,7 @@ func main() {
 
 		user, err := getGoogleUser(c)
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 		}
 		dbConn, err := db.Conn()
 		pendingRow, err := models.GetPendingRow(dbConn, friendGoogleID, user.ID)
@@ -258,11 +258,11 @@ func main() {
 			security.Reject(c, err.Error(), securityerror.Custom)
 		}
 		if models.DeletePendingFriendRequest(dbConn, pendingRow.ID); err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 		}
 		err = models.AddFriend(dbConn, friendGoogleID, user.ID)
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 		}
 		security.Accept(c, nil, "")
 	})
@@ -271,7 +271,7 @@ func main() {
 
 		googleUser, err := getGoogleUser(c)
     if err != nil {
-      security.Reject(c, err.Error(), securityerror.Internal)
+      security.RejectError(c, err)
       return
     }
 		dbConn, err := db.Conn()
@@ -302,23 +302,23 @@ func main() {
 
 		_, err = dbConn.Exec("INSERT INTO pending_friends (invited_google_id, invitee_google_id) VALUES (?, ?)", googleUser.ID, friendGoogleID)
   	if err != nil {
-  		security.Reject(c, err.Error(), securityerror.Internal)
+  		security.RejectError(c, err)
   	}
   	security.Accept(c, nil, "")
 	})
 	router.GET("/friends", security.Authenticate, func(c *gin.Context) {
 		googleUser, err := getGoogleUser(c)
     if err != nil {
-      security.Reject(c, err.Error(), securityerror.Internal)
+      security.RejectError(c, err)
       return
     }
 		dbConn, err := db.Conn()
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 		}
 		friends, err := models.GetFriends(dbConn, googleUser.ID)
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 		}
 
 		security.Accept(c, friends, "")
@@ -328,28 +328,28 @@ func main() {
 
 		dbConn, err := db.Conn()
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 		}
 		friends, err := models.GetFriends(dbConn, googleID)
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 		}
 		security.Accept(c, friends, "")
 	})
 	router.GET("/user", security.Authenticate, func(c *gin.Context) {
 		googleUser, err := getGoogleUser(c)
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 		}
 		
 		dbConn, err := db.Conn()
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 		}
 
     user, err := getUser(dbConn, googleUser, false)
     if err != nil {
-      security.Reject(c, err.Error(), securityerror.Internal)
+      security.RejectError(c, err)
       return
     }
 		security.Accept(c, user, "")
@@ -361,12 +361,12 @@ func main() {
 
 		dbConn, err := db.Conn()
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 			return
 		}
 		valid, reason, err := validateUsername(dbConn, username)
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 			return
 		}
 		if !valid {
@@ -377,7 +377,7 @@ func main() {
 		// if username is valid, attempt to create it
 		err = models.UpdateUsername(dbConn, googleUser, username)
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 			return
 		}
 		security.Accept(c, &apiresps.CreateUsernameData{
@@ -389,12 +389,12 @@ func main() {
 
 		dbConn, err := db.Conn()
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 			return
 		}
 		valid, reason, err := validateUsername(dbConn, username)
 		if err != nil {
-			security.Reject(c, err.Error(), securityerror.Internal)
+			security.RejectError(c, err)
 			return
 		}
 		if valid {
