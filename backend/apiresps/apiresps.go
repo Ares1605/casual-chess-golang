@@ -19,11 +19,11 @@ type ValidateUsernameData struct {
 type ValidateUsername struct {
   Resp[ValidateUsernameData]
 }
-type CreateUsernameData struct {
+type SetupUserData struct {
   Username string `json:"username"`
 }
-type CreateUsername struct {
-  Resp[CreateUsernameData]
+type SetupUser struct {
+  Resp[SetupUserData]
 }
 type User struct {
   Resp[user.User]

@@ -347,6 +347,45 @@ func main() {
     }
 		security.Accept(c, user, "")
 	})
+	router.GET("/setup/user", security.Authenticate, func (c *gin.Context) {
+		googleUser, err := getGoogleUser(c)
+
+		username := c.Query("username")
+
+		dbConn, err := db.Conn()
+		if err != nil {
+			security.RejectError(c, err)
+			return
+		}
+		dbUser, err := models.GetUser(dbConn, googleUser.ID)
+		if err != nil {
+			security.RejectError(c, err)
+			return
+		}
+		if dbUser.SetupComplete {
+			security.Reject(c, "You cannot setup an already setup account!", securityerror.Custom)
+			return
+		}
+		valid, reason, err := validateUsername(dbConn, username)
+		if err != nil {
+			security.RejectError(c, err)
+			return
+		}
+		if !valid {
+			security.Reject(c, string(reason), securityerror.Custom)
+			return
+		}
+
+		// if username is valid, attempt to create it
+		err = models.SetupUser(dbConn, googleUser, username)
+		if err != nil {
+			security.RejectError(c, err)
+			return
+		}
+		security.Accept(c, &apiresps.SetupUserData{
+			Username: username,
+		}, "")
+	})
 	router.GET("/create/username/:username", security.Authenticate, func (c *gin.Context) {
 		googleUser, err := getGoogleUser(c)
 
@@ -368,12 +407,12 @@ func main() {
 		}
 
 		// if username is valid, attempt to create it
-		err = models.UpdateUsername(dbConn, googleUser, username)
+		err = models.SetupUser(dbConn, googleUser, username)
 		if err != nil {
 			security.RejectError(c, err)
 			return
 		}
-		security.Accept(c, &apiresps.CreateUsernameData{
+		security.Accept(c, &apiresps.SetupUserData{
 			Username: username,
 		}, "")
 	})
