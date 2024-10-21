@@ -35,7 +35,7 @@ type AwaitSignIn struct {
   }]
 }
 type Friends struct {
-  Resp[[]models.User]
+  Resp[[]models.BasicUser]
 }
 type Ping struct {
   Message string `json:"message"`
