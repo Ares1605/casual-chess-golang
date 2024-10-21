@@ -91,7 +91,7 @@ func GetGame(dbConn *sql.DB, id int) (*game.Game, error) {
 func CreateUser(dbConn *sql.DB, googleUser *googleuser.GoogleUser) (*User, error) {
   username := uuid.New().String()
   statement := "INSERT INTO users (google_name, username, google_id, email, profile_url) VALUES (?, ?, ?, ?, ?)"
-  result, err := dbConn.Exec(statement, googleUser.Name, username, googleUser.ID, googleUser.Email, googleUser.Profile)
+  result, err := dbConn.Exec(statement, googleUser.Name, username, googleUser.ID, googleUser.Email, googleUser.ProfileURL)
   if err != nil {
     return nil, err
   }

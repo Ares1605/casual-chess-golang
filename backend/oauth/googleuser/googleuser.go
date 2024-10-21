@@ -8,7 +8,7 @@ type GoogleUser struct {
   ID string `json:"id"`
   Email string `json:"email"`
   Name string `json:"name"`
-  Profile string `json:"profile"`
+  ProfileURL string `json:"profile"`
   DecodedJWT *googlejwt.GoogleJWT `json:"decoded_jwt"`
   EncodedJWT string `json:"encoded_jwt"`
 }
@@ -21,7 +21,7 @@ func New(token string) (*GoogleUser, error) {
   return &GoogleUser {
     ID: decodedJWT.Sub,
     Email: decodedJWT.Email,
-    Profile: decodedJWT.Picture,
+    ProfileURL: decodedJWT.Picture,
     Name: decodedJWT.Name,
     DecodedJWT: decodedJWT,
     EncodedJWT: token,

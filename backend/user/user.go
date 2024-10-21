@@ -12,7 +12,7 @@ type User struct {
   Username string `json:"username"`
   SetupComplete bool `json:"setup_complete"`
   GoogleID string `json:"google_id"`
-  Profile string `json:"profile_url"`
+  ProfileURL string `json:"profile_url"`
   Email string `json:"email"`
   Name string `json:"name"`
   DecodedJWT *googlejwt.GoogleJWT `json:"decoded_jwt"`
@@ -28,7 +28,7 @@ func MergeUsers (googleUser *googleuser.GoogleUser, dbUser *models.User) (*User,
     Username: dbUser.Username,
     SetupComplete: dbUser.SetupComplete,
     GoogleID: googleUser.ID,
-    Profile: googleUser.Profile,
+    ProfileURL: googleUser.ProfileURL,
     Email: googleUser.Email,
     Name: googleUser.Name,
     DecodedJWT: googleUser.DecodedJWT,
