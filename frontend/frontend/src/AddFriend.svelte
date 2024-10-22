@@ -9,10 +9,7 @@
   let inviteCode: HTMLSpanElement;
   const copyInviteCode = () => {
     navigator.clipboard.writeText(inviteCode.textContent);
-    notifs.add({
-      type: TypesType.Success,
-      body: "Copied to clipboard!"
-    });
+    notifs.add(TypesType.Success, "Copied to clipboard!");
   }
 </script>
 <div class="overlay">

@@ -10,15 +10,18 @@
 
   function signIn() {
     SignIn()
-      .then(user => {
-        dispatch("signIn", user);
+      .then(result => {
+        if (!result.success)
+          return notifs.addEndpointError(result);
+        console.log(result);
+        dispatch("signIn", result.data.user);
       })
       .catch(error => {
-        notifs.add({
-          type: TypesType.Error,
-          title: "Failed to sign in",
-          body: "Description: " + String(error)
-        });
+        notifs.add(
+          TypesType.Error,
+          "Description: " + String(error),
+          "Failed to sign in"
+        );
       });
   }
 </script>

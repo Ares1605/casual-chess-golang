@@ -8,7 +8,7 @@
   export let height: string;
 
   let friends: apiresps.Friends["data"] = [];
-  GetFriends($user, $user.encoded_jwt).then(result => {
+  GetFriends($user).then(result => {
     if (result.success) {
       friends = result.data;
     }

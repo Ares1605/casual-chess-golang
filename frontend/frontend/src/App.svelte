@@ -1,6 +1,6 @@
 <script lang="ts">
   import SignIn from './SignInComp.svelte';
-  import Home from './Home.svelte';
+  import Authenticated from './Authenticated.svelte';
   import NotifsLayer from "./NotifsLayer.svelte";
   import ServerCheck from "./ServerCheck.svelte";
   import SetupAccount from "./SetupAccount.svelte";
@@ -13,14 +13,18 @@
     InitialSetup
   };
   let authStatus = AuthStatuses.SigningIn;
-  function handleSignIn(event: CustomEvent<userModel.User>) {
+  const handleSignIn = (event: CustomEvent<userModel.User>) => {
+    console.log(event.detail);
     $user = event.detail;
     if ($user.setup_complete)  {
-      authStatus = AuthStatuses.Authenticated
+      authStatus = AuthStatuses.Authenticated;
     } else {
-      authStatus = AuthStatuses.InitialSetup
+      authStatus = AuthStatuses.InitialSetup;
     }
   }
+  const handleSetup = (() => {
+    authStatus = AuthStatuses.Authenticated;
+  });
 
 </script>
 <NotifsLayer />
@@ -28,8 +32,8 @@
   {#if authStatus === AuthStatuses.SigningIn}
     <SignIn on:signIn={handleSignIn} />
   {:else if authStatus === AuthStatuses.InitialSetup}
-    <SetupAccount />
+    <SetupAccount on:setup={handleSetup} />
   {:else}
-      <Home />
+    <Authenticated />
   {/if}
 </ServerCheck>

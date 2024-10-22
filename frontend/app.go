@@ -2,19 +2,16 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
 	"net/url"
 	"os/exec"
 	"runtime"
 	"strings"
 
-	"github.com/Ares1605/casual-chess-golang/backend/user"
+	"github.com/Ares1605/casual-chess-golang/backend/apiresps"
 	"github.com/Ares1605/casual-chess-golang/backend/oauth/googlejwt"
 	"github.com/Ares1605/casual-chess-golang/backend/oauth/googleuser"
-	"github.com/Ares1605/casual-chess-golang/backend/apiresps"
+	"github.com/Ares1605/casual-chess-golang/backend/user"
+	"github.com/Ares1605/casual-chess-golang/frontend/api"
 	"github.com/Ares1605/casual-chess-golang/frontend/kv"
 	"github.com/google/uuid"
 )
@@ -36,41 +33,22 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-func awaitSignIn(customUUID uuid.UUID) (*user.User, error) {
-	client := &http.Client{}
-  data := url.Values{}
-	req, err := http.NewRequest("GET", "http://localhost:8080/signin/await?uuid=" + customUUID.String(), strings.NewReader(data.Encode()))
+func awaitSignIn(customUUID uuid.UUID) (*apiresps.AwaitSignIn, error) {
+	endpoint := "signin/await?uuid=" + customUUID.String()
+	response, err := api.Get[apiresps.AwaitSignIn](endpoint, nil, nil)
 	if err != nil {
-		return &user.User{}, err
+		return nil, err
 	}
-
-	req.Header.Add("Content-Type", "application/json")
-
-	// send request
-	resp, err := client.Do(req)
-	if err != nil {
-		return &user.User{}, err
+	if !response.Success { // return before storing it in the kv bucket
+		return response, nil
 	}
-	defer resp.Body.Close()
-
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return &user.User{}, err
-	}
-	var parsed apiresps.AwaitSignIn
-	err = json.Unmarshal(body, &parsed)
-	if err != nil {
-		return &user.User{}, err
-	}
-
 	// store the jwt in a kv store
 	db, err := kv.GetDB()
 	defer db.Close()
 	if err == nil {
-		kv.Put(db, kv.JWT, []byte(parsed.Data.Token))
+		kv.Put(db, kv.JWT, []byte(response.Data.Token))
 	}
-	return &parsed.Data.User, nil
+	return response, nil
 }
 func openURL(url string) error {
 	var cmd *exec.Cmd
@@ -104,119 +82,62 @@ func (a *App) GetSession() string {
 	googlejwt.New(string(jwt[:]))
 	return string(jwt[:])
 }
-func (a *App) SignIn() (*user.User, error) {
+func (a *App) GetOldSession() (*user.User, error) {
+	db, err := kv.GetDB()
+	if err != nil {
+		return nil, err
+	}
+	jwt, err := kv.Get(db, kv.JWT)
+	if err != nil {
+		return jwt
+	}
+	googleuser.New(jwt.String())
+}
+func (a *App) SignIn() (*apiresps.AwaitSignIn, error) {
 	customUUID := uuid.New()
-	url := "http://localhost:8080/signin?uuid=" + customUUID.String()
-	if err := openURL(url); err != nil {
+	toOpenURL := "http://localhost:8080/signin?uuid=" + customUUID.String()
+	if err := openURL(toOpenURL); err != nil {
 		return nil, err
 	}
 
-  user, err := awaitSignIn(customUUID)
+  resp, err := awaitSignIn(customUUID)
   if err != nil {
   	return nil, err
   }
-  return user, nil
+  return resp, nil
 }
-func (a *App) GetFriends(fullUser user.User, googleID string) apiresps.Friends {
-	client := &http.Client{}
-  data := url.Values{}
-	req, err := http.NewRequest("GET", "http://localhost:8080/friends", strings.NewReader(data.Encode()))
+func (a *App) GetFriends(fullUser user.User) (*apiresps.Friends, error) {
+	response, err := api.Get[apiresps.Friends]("friends", nil, &fullUser.EncodedJWT)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer " + fullUser.EncodedJWT)
-
-	// send request
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-	var parsed apiresps.Friends
-	if err := json.Unmarshal(body, &parsed); err != nil {
-		panic(err)
-	}
-
-	// store the jwt in a kv store
-	return parsed
+	return response, err
 }
 func (a *App) ServerOnline() bool {
-	resp, err := http.Get("http://localhost:8080/ping")
-  if err != nil {
-      return false
-  }
-  defer resp.Body.Close()
-  return true
+	_, err := api.Get[apiresps.Ping]("ping", nil, nil)
+	return err == nil
 }
-func (a *App) GetUser(googleUser *googleuser.GoogleUser) *user.User {
-	client := &http.Client{}
-  data := url.Values{}
-	req, err := http.NewRequest("GET", "http://localhost:8080/user", strings.NewReader(data.Encode()))
+func (a *App) CreateUsername(fullUser *user.User, username string) (*apiresps.SetupUser, error) {
+	endpoint := "setup/user"
+	data := url.Values{}
+	data.Set("username", username)
+	response, err := api.Get[apiresps.SetupUser](endpoint, &data, &fullUser.EncodedJWT)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer " + googleUser.EncodedJWT)
-
-	// send request
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-	var parsed apiresps.User
-	if err := json.Unmarshal(body, &parsed); err != nil {
-		panic(err)
-	}
-
 	// store the jwt in a kv store
-	return &parsed.Data
+	return response, nil
 }
-func (a *App) ValidateUsername(fullUser *user.User, username string) (*apiresps.ValidateUsernameData, error) {
-	fmt.Println(username)
-	client := &http.Client{}
-  data := url.Values{}
-	fmt.Println("http://localhost:8080/validate/username/" + url.PathEscape(username))
-	req, err := http.NewRequest("GET", "http://localhost:8080/validate/username/" + url.PathEscape(username), strings.NewReader(data.Encode()))
+func (a *App) ValidateUsername(fullUser *user.User, username string) (*apiresps.ValidateUsername, error) {
+
+	endpoint := "validate/username/" + url.PathEscape(username)
+	response, err := api.Get[apiresps.ValidateUsername](endpoint, nil, &fullUser.EncodedJWT)
 	if err != nil {
 		return nil, err
 	}
-
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer " + fullUser.EncodedJWT)
-
-	// send request
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	var parsed apiresps.ValidateUsername
-	if err := json.Unmarshal(body, &parsed); err != nil {
-		return nil, err
-	}
-
 	// store the jwt in a kv store
-	return &parsed.Data, nil
+	return response, nil
+}
+func (a *App) ForceAddRespModel() *apiresps.JunkResp {
+	return &apiresps.JunkResp{}
 }
