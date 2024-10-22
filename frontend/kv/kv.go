@@ -3,6 +3,7 @@ package kv
 import (
 	"errors"
 	"go.etcd.io/bbolt"
+	"time"
 )
 
 type Key int
@@ -19,7 +20,7 @@ func (k Key) Bytes() []byte {
 }
 
 func GetDB() (*bbolt.DB, error) {
-  db, err := bbolt.Open("bbolt.db", 0600, nil)
+	db, err := bbolt.Open("bbolt.db", 0600, &bbolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 	  return nil, err
 	}

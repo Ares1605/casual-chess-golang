@@ -1,39 +1,26 @@
 <script lang="ts">
+  import { type Writable, writable } from "svelte/store";
+  import { AuthStatuses } from "./lib/types";
+
   import SignIn from './SignInComp.svelte';
   import Authenticated from './Authenticated.svelte';
   import NotifsLayer from "./NotifsLayer.svelte";
   import ServerCheck from "./ServerCheck.svelte";
   import SetupAccount from "./SetupAccount.svelte";
-  import { user } from "./lib/user";
-  import { user as userModel } from "../wailsjs/go/models";
+  import AwaitingOldSess from "./AwaitingOldSess.svelte";
 
-  enum AuthStatuses {
-    Authenticated,
-    SigningIn,
-    InitialSetup
-  };
-  let authStatus = AuthStatuses.SigningIn;
-  const handleSignIn = (event: CustomEvent<userModel.User>) => {
-    console.log(event.detail);
-    $user = event.detail;
-    if ($user.setup_complete)  {
-      authStatus = AuthStatuses.Authenticated;
-    } else {
-      authStatus = AuthStatuses.InitialSetup;
-    }
-  }
-  const handleSetup = (() => {
-    authStatus = AuthStatuses.Authenticated;
-  });
+  let authStatus: Writable<AuthStatuses> = writable(AuthStatuses.AwaitingOldSess);
 
 </script>
 <NotifsLayer />
 <ServerCheck>
-  {#if authStatus === AuthStatuses.SigningIn}
-    <SignIn on:signIn={handleSignIn} />
-  {:else if authStatus === AuthStatuses.InitialSetup}
-    <SetupAccount on:setup={handleSetup} />
+  {#if $authStatus === AuthStatuses.AwaitingOldSess}
+    <AwaitingOldSess {authStatus} />
+  {:else if $authStatus === AuthStatuses.SigningIn}
+    <SignIn {authStatus} />
+  {:else if $authStatus === AuthStatuses.InitialSetup}
+    <SetupAccount {authStatus} />
   {:else}
-    <Authenticated />
+    <Authenticated {authStatus} />
   {/if}
 </ServerCheck>

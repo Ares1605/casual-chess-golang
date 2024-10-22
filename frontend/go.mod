@@ -7,7 +7,7 @@ toolchain go1.23.2
 require (
 	github.com/Ares1605/casual-chess-golang/backend v0.0.0-20241021222312-72b839c54d1d
 	github.com/google/uuid v1.6.0
-	github.com/wailsapp/wails/v2 v2.9.2
+	github.com/wailsapp/wails/v2 v2.9.1
 	go.etcd.io/bbolt v1.3.11
 )
 

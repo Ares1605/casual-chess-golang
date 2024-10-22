@@ -1,10 +1,13 @@
 <script lang="ts">
   import type { ComponentType } from 'svelte';
   import { type Writable, writable } from "svelte/store";
+  import { AuthStatuses } from './lib/types';
     
   import Header from "./Header.svelte";
   import Home from "./Home.svelte";
   import FL from "./FL.svelte";
+  
+  export let authStatus: Writable<AuthStatuses>;
 
   const route: Writable<ComponentType> = writable(Home);
 </script>

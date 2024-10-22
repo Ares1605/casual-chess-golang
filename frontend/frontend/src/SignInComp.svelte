@@ -1,22 +1,35 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import type { Writable } from "svelte/store";
   import { SignIn } from '../wailsjs/go/main/App.js';
-  import { user } from 'wailsjs/go/models';
-  import { notifs, TypesType } from './lib/notifs';
 
-  const dispatch = createEventDispatcher<{
-    signIn: user.User;
-  }>();
+  import { user } from "./lib/user.js";
+  import { notifs, TypesType } from './lib/notifs';
+  import { AuthStatuses } from "./lib/types";
+
+  export let authStatus: Writable<AuthStatuses>;
+
+  const switchStatus = () => {
+    if ($user.setup_complete)  {
+      $authStatus = AuthStatuses.Authenticated;
+    } else {
+      $authStatus = AuthStatuses.InitialSetup;
+    }
+  }
 
   function signIn() {
+    console.log("asd");
     SignIn()
       .then(result => {
+        console.log(result);
+        console.log("^^^");
         if (!result.success)
           return notifs.addEndpointError(result);
-        console.log(result);
-        dispatch("signIn", result.data.user);
+
+        $user = result.data;
+        switchStatus();
       })
       .catch(error => {
+        console.error(error);
         notifs.add(
           TypesType.Error,
           "Description: " + String(error),

@@ -1,9 +1,13 @@
 <script lang="ts">
-  import { onDestroy, onMount, createEventDispatcher } from "svelte";
+  import { onDestroy, onMount } from "svelte";
+  import type { Writable } from "svelte/store";
   import { notifs, TypesType } from "./lib/notifs";
   import { ValidateUsername, CreateUsername } from "../wailsjs/go/main/App";
   import { user } from "./lib/user";
-  import { user as userModel } from "../wailsjs/go/models";
+  import { AuthStatuses } from "./lib/types";
+  
+  export let authStatus: Writable<AuthStatuses>;
+  
   let input: HTMLInputElement;
   let submit: HTMLButtonElement;
 
@@ -14,9 +18,9 @@
   let usernameExists: HTMLSpanElement;
   let stopSVG: SVGElement;
 
-  const dispatch = createEventDispatcher<{
-    setup: userModel.User;
-  }>();
+  const switchStatus = () => {
+    $authStatus = AuthStatuses.Authenticated;
+  }
 
   onMount(() => {
     const wiggle = (ele: Element) => {
@@ -60,7 +64,8 @@
           if (!result.success)
             return notifs.addEndpointError(result);
           $user.username = result.data.username;
-          dispatch("setup");
+
+          switchStatus();
         })
         .catch(error => {
           notifs.add(

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/url"
 	"os/exec"
 	"runtime"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/Ares1605/casual-chess-golang/backend/apiresps"
 	"github.com/Ares1605/casual-chess-golang/backend/oauth/googlejwt"
-	"github.com/Ares1605/casual-chess-golang/backend/oauth/googleuser"
 	"github.com/Ares1605/casual-chess-golang/backend/user"
 	"github.com/Ares1605/casual-chess-golang/frontend/api"
 	"github.com/Ares1605/casual-chess-golang/frontend/kv"
@@ -84,14 +84,23 @@ func (a *App) GetSession() string {
 }
 func (a *App) GetOldSession() (*user.User, error) {
 	db, err := kv.GetDB()
+	defer db.Close()
 	if err != nil {
 		return nil, err
 	}
 	jwt, err := kv.Get(db, kv.JWT)
 	if err != nil {
-		return jwt
+		return nil, err
 	}
-	googleuser.New(jwt.String())
+	stringified := string(jwt)
+	resp, err := api.Get[apiresps.User]("user", nil, &stringified)
+	if err != nil {
+		return nil, err
+	}
+	if !resp.Success {
+		return nil, errors.New(resp.Error.Message)
+	}
+	return &resp.Data, nil
 }
 func (a *App) SignIn() (*apiresps.AwaitSignIn, error) {
 	customUUID := uuid.New()
@@ -101,6 +110,7 @@ func (a *App) SignIn() (*apiresps.AwaitSignIn, error) {
 	}
 
   resp, err := awaitSignIn(customUUID)
+
   if err != nil {
   	return nil, err
   }

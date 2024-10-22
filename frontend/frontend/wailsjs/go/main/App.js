@@ -14,6 +14,10 @@ export function GetFriends(arg1) {
   return window['go']['main']['App']['GetFriends'](arg1);
 }
 
+export function GetOldSession() {
+  return window['go']['main']['App']['GetOldSession']();
+}
+
 export function GetSession() {
   return window['go']['main']['App']['GetSession']();
 }

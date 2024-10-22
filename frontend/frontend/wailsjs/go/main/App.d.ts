@@ -9,6 +9,8 @@ export function ForceAddRespModel():Promise<apiresps.JunkResp>;
 
 export function GetFriends(arg1:user.User):Promise<apiresps.Friends>;
 
+export function GetOldSession():Promise<user.User>;
+
 export function GetSession():Promise<string>;
 
 export function ServerOnline():Promise<boolean>;
