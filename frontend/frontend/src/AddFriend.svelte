@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { notifs, TypesType } from "./lib/notifs";
-  import HorizLine from "./HorizLine.svelte";
+  import HorizLine from "./common/HorizLine.svelte";
 
   const dispatch = createEventDispatcher();
   const closeModal = () => dispatch('close');

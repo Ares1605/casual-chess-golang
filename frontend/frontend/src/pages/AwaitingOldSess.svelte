@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { user } from "./lib/user";
+  import { user } from "../lib/user";
   import type { Writable } from "svelte/store";
-  import { GetOldSession } from "../wailsjs/go/main/App";
-  import { AuthStatuses } from "./lib/types";
-  import Loading from "./Loading.svelte";
+  import { GetOldSession } from "../../wailsjs/go/main/App";
+  import { AuthStatuses } from "../lib/types";
+  import Loading from "../Loading.svelte";
   
   export let authStatus: Writable<AuthStatuses>;
 

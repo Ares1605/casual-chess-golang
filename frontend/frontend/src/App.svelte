@@ -2,12 +2,12 @@
   import { type Writable, writable } from "svelte/store";
   import { AuthStatuses } from "./lib/types";
 
-  import SignIn from './SignInComp.svelte';
-  import Authenticated from './Authenticated.svelte';
+  import SignIn from './pages/SignIn.svelte';
+  import Authenticated from './pages/Authenticated.svelte';
   import NotifsLayer from "./NotifsLayer.svelte";
-  import ServerCheck from "./ServerCheck.svelte";
-  import SetupAccount from "./SetupAccount.svelte";
-  import AwaitingOldSess from "./AwaitingOldSess.svelte";
+  import ServerCheck from "./pages/ServerCheck.svelte";
+  import SetupAccount from "./pages/SetupAccount.svelte";
+  import AwaitingOldSess from "./pages/AwaitingOldSess.svelte";
 
   let authStatus: Writable<AuthStatuses> = writable(AuthStatuses.AwaitingOldSess);
 

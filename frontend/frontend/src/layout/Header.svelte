@@ -1,10 +1,10 @@
 <script lang="ts">
   import type { ComponentType } from "svelte";
   import type { Writable } from "svelte/store";
-  import Profile from "./Profile.svelte";
-  import FriendsButton from "./FriendsButton.svelte";
-  import Home from "./Home.svelte";
-  import BackButton from "./BackButton.svelte";
+  import FriendsButton from "../FriendsButton.svelte";
+  import Home from "../pages/Home.svelte";
+  import BackButton from "../BackButton.svelte";
+  import SettingButton from "../features/setting/SettingButton.svelte";
 
   export let route: Writable<ComponentType>;
 </script>
@@ -16,7 +16,7 @@
     {/if}
     <FriendsButton {route} />
   </div>
-  <Profile height="75%" />
+  <SettingButton height="75%" {route} />
   <h1>Casual Chess</h1>
 </div>
 <style>

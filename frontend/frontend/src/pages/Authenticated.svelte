@@ -1,11 +1,11 @@
 <script lang="ts">
   import type { ComponentType } from 'svelte';
   import { type Writable, writable } from "svelte/store";
-  import { AuthStatuses } from './lib/types';
+  import { AuthStatuses } from "../lib/types";
     
-  import Header from "./Header.svelte";
+  import Header from "../layout/Header.svelte";
   import Home from "./Home.svelte";
-  import FL from "./FL.svelte";
+  import FriendsList from "../features/friends/FriendsList.svelte";
   
   export let authStatus: Writable<AuthStatuses>;
 
@@ -18,7 +18,7 @@
     <div>
       <svelte:component this={$route} {route} />
     </div>
-    <FL />
+    <FriendsList />
   </main>
 </div>
 

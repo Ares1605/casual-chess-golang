@@ -1,10 +1,10 @@
 <script lang="ts">
   import type { Writable } from "svelte/store";
-  import { SignIn } from '../wailsjs/go/main/App.js';
+  import { SignIn } from "../../wailsjs/go/main/App.js";
 
-  import { user } from "./lib/user.js";
-  import { notifs, TypesType } from './lib/notifs';
-  import { AuthStatuses } from "./lib/types";
+  import { user } from "../lib/user.js";
+  import { notifs, TypesType } from "../lib/notifs";
+  import { AuthStatuses } from "../lib/types";
 
   export let authStatus: Writable<AuthStatuses>;
 
@@ -17,15 +17,12 @@
   }
 
   function signIn() {
-    console.log("asd");
     SignIn()
       .then(result => {
-        console.log(result);
-        console.log("^^^");
         if (!result.success)
           return notifs.addEndpointError(result);
 
-        $user = result.data;
+        $user = result.data.user;
         switchStatus();
       })
       .catch(error => {

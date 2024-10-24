@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
-  import Offline from "./Offline.svelte";
-  import Pending from "./Pending.svelte";
-  import { ServerOnline } from "../wailsjs/go/main/App.js";
+  import Offline from "../Offline.svelte";
+  import Pending from "../Pending.svelte";
+  import { ServerOnline } from "../../wailsjs/go/main/App.js";
   let pending = true;
   let serverOnline = false;
   let currentServerTimeout: number|undefined;

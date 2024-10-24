@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import type { Writable } from "svelte/store";
-  import { notifs, TypesType } from "./lib/notifs";
-  import { ValidateUsername, CreateUsername } from "../wailsjs/go/main/App";
-  import { user } from "./lib/user";
-  import { AuthStatuses } from "./lib/types";
+  import { notifs, TypesType } from "../lib/notifs";
+  import { ValidateUsername, CreateUsername } from "../../wailsjs/go/main/App";
+  import { user } from "../lib/user";
+  import { AuthStatuses } from "../lib/types";
   
   export let authStatus: Writable<AuthStatuses>;
   

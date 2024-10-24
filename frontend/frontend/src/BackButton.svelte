@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { ComponentType } from "svelte";
   import type { Writable } from "svelte/store";
-  import Home from "./Home.svelte";
+  import Home from "./pages/Home.svelte";
   export let route: Writable<ComponentType>
 
   export let height = "100%";
