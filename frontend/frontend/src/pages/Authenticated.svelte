@@ -10,10 +10,11 @@
   export let authStatus: Writable<AuthStatuses>;
 
   const route: Writable<ComponentType> = writable(Home);
+  const modals: Writable<ComponentType[]> = writable([]);
 </script>
 
 <div class="parent">
-  <div><Header {route} /></div>
+  <div style="height: 60px"><Header {route} /></div>
   <main>
     <div>
       <svelte:component this={$route} {route} />
@@ -28,10 +29,12 @@
     height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: scroll;
   }
   main {
     display: flex;
-    height: 100%;
+    flex-grow: 1; /* grow to the maximum */
+    overflow: auto;
   }
   main > div {
     width: 100%;

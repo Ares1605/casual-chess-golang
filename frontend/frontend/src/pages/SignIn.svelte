@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Writable } from "svelte/store";
   import { SignIn } from "../../wailsjs/go/main/App.js";
+  import Button from "../common/Button.svelte";
 
   import { user } from "../lib/user.js";
   import { notifs, TypesType } from "../lib/notifs";
@@ -38,7 +39,7 @@
 <img class="title" src="/logos/casual-chess.png" alt="casual chess">
 <div>
   <img class="board" src="/logos/chess-board.png" alt="board">
-  <button on:click={signIn}>Sign In</button>
+  <Button bubble on:click={signIn}>Sign In</Button>
 </div>
 
 <style>
@@ -57,24 +58,5 @@
   .board {
     width: 100%;
     height: 100%;
-  }
-  button {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 25px;
-    border: 4px solid #42210d;
-    width: 175px;
-    height: 50px;
-    border-radius: 25px;
-    background-color: #d4bea1;
-    color: #42210d;
-    cursor: pointer;
-
-    &:active {
-      background-color: #42210d;
-      color: #d4bea1;
-    }
   }
 </style>

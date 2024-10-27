@@ -1,29 +1,26 @@
 <script lang="ts">
   import type { ComponentType } from "svelte";
   import type { Writable } from "svelte/store";
-  import FriendsButton from "../FriendsButton.svelte";
   import Home from "../pages/Home.svelte";
-  import BackButton from "../BackButton.svelte";
   import SettingButton from "../features/setting/SettingButton.svelte";
 
   export let route: Writable<ComponentType>;
 </script>
 
 <div class="parent">
-  <div>
-    {#if $route !== Home}
-      <BackButton height="75%" {route} />
-    {/if}
-    <FriendsButton {route} />
+  <div class="left">
+    <!-- empty -->
   </div>
-  <SettingButton height="75%" {route} />
+  <div class="right">
+    <SettingButton height="75%" {route} />
+  </div>
   <h1>Casual Chess</h1>
 </div>
 <style>
   .parent {
     position: relative;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between;;
     align-items: center;
     height: 60px;
   }
@@ -40,5 +37,6 @@
     font-size: 25px;
     transform: translateX(-50%);
     margin: 0px;
+    color: var(--color-primary);
   }
 </style>

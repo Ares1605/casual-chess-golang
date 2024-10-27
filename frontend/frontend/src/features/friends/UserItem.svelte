@@ -41,11 +41,14 @@
     flex-direction: row;
     justify-content: start;
     align-items: center;
-    background-color: #82620a;
+    background-color: var(--color-primary-dark);
+    color: var(--color-primary-light);
+    font-weight: bold;
+    font-size: 15px;
     width: 100%;
   }
   .item:hover {
-    background-color: #a67d0d;
+    background-color: var(--color-primary);
   }
   img {
     box-sizing: border-box;

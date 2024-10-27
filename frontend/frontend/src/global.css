@@ -1,11 +1,43 @@
+:root {
+    /* Primary colors */
+    --color-primary: #2b2a27;
+    --color-primary-dark: #21201c;
+    --color-primary-light: rgb(108, 106, 96);
+
+    /* Neutral/background colors */
+    --color-neutral: #e5e5e2;
+    --color-neutral-darker: #b8b5a9;
+
+    /* Accent colors */
+    --color-accent: #b6613c;
+    --color-accent-dark: #9c5232;
+
+    /* Semantic aliases - examples of how you might use them */
+    --color-background: var(--color-primary);
+
+    --color-text-dark: var(--color-primary-dark);
+    --color-text-light: var(--color-neutral);     /* For dark backgrounds */
+    --color-text-accent: var(--color-accent);
+
+    --color-button: var(--color-neutral);
+    --color-button-hover: var(--color-neutral);
+    --color-button-border: var(--color-accent-dark);
+    --color-button-text: var(--color-neutral);
+    --button-transition: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --color-border: var(--color-accent-dark);
+    --border-width: .5px;
+    --border-width-hover: .8px;
+    --transform-active: 'matrix(0.9875, 0, 0, 0.9875, 0, 0)'
+}
 html {
     height: 100%;
-    background: radial-gradient(#705838, #d4bea1);
+    background-color: var(--color-background);
 }
 body {
     margin: 0px;
     font-family: Verdana, sans-serif;
-    color: #42210d;
+    color: var(--color-text-dark);
     height: 100%;
     overflow: hidden; /* lock app */
 }
@@ -23,11 +55,8 @@ body {
 }
 @keyframes wiggle {
     0% { transform: translate(0, 0) rotate(0deg); }
-    25% {
-        transform: translate(0, 1px) rotate(1deg);
-    }
+    25% { transform: translate(0, 1px) rotate(1deg); }
     50% { transform: translate(0, 0) rotate(0deg); }
     75% { transform: translate(0, -1px) rotate(-1deg); }
     100% { transform: translate(0, 0) rotate(0deg); }
 }
-

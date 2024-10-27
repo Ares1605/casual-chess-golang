@@ -3,20 +3,21 @@
 
   export let users: any;
   export let minimizedWidth: string;
+  export let name: string;
   
   let fold = false;
 </script>
 
 <div class="container">
-  <div class="spacer">
+  <button class="spacer" on:click={() => fold = !fold}>
     <span style="min-width: {minimizedWidth}; max-width: {minimizedWidth}" class="minimized">{users.length}</span>
-    <span class="expanded">FWIENDS</span>
-    <button on:click={() => fold = !fold} class:fold={fold} class="fold-btn">
+    <span class="expanded">{name}</span>
+    <button class:fold={fold} class="fold-btn">
       <svg class="arrow-icon" viewBox="90 0 76 256" xmlns="http://www.w3.org/2000/svg">
         <path d="M160,220a11.96287,11.96287,0,0,1-8.48535-3.51465l-80-80a12.00062,12.00062,0,0,1,0-16.9707l80-80a12.0001,12.0001,0,0,1,16.9707,16.9707L96.9707,128l71.51465,71.51465A12,12,0,0,1,160,220Z"/>
       </svg>
     </button>
-  </div>
+  </button>
   <div class:fold={fold} class="users">
     <div class="inner">
       {#each users as user}
@@ -83,5 +84,7 @@
     max-height: 35px;
     min-height: 35px;
     width: 100%;
+    background-color: transparent;
+    border: none;
   }
 </style>

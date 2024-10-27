@@ -8,8 +8,8 @@
     margin: auto;
 
     height: 1px;
-    border: 1px solid #42210d;
-    background-color: #42210d;
+    border: 1px solid var(--color-primary-darker);
+    background-color: var(--color-primary-darker);
     border-radius: 3px;
   }
 </style>

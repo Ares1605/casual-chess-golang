@@ -8,6 +8,7 @@
   import ServerCheck from "./pages/ServerCheck.svelte";
   import SetupAccount from "./pages/SetupAccount.svelte";
   import AwaitingOldSess from "./pages/AwaitingOldSess.svelte";
+  import Modals from "./common/modals/Modals.svelte";
 
   let authStatus: Writable<AuthStatuses> = writable(AuthStatuses.AwaitingOldSess);
 
@@ -23,4 +24,5 @@
   {:else}
     <Authenticated {authStatus} />
   {/if}
+  <Modals />
 </ServerCheck>
