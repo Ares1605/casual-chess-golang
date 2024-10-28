@@ -2,7 +2,7 @@
   import type { ComponentType } from "svelte";
   import type { Writable } from "svelte/store";
   import Home from "../pages/Home.svelte";
-  import SettingButton from "../features/setting/SettingButton.svelte";
+  import OptionsButton from "../features/options/OptionsButton.svelte";
 
   export let route: Writable<ComponentType>;
 </script>
@@ -12,7 +12,7 @@
     <!-- empty -->
   </div>
   <div class="right">
-    <SettingButton height="75%" {route} />
+    <OptionsButton height="75%" {route} />
   </div>
   <h1>Casual Chess</h1>
 </div>
@@ -37,6 +37,6 @@
     font-size: 25px;
     transform: translateX(-50%);
     margin: 0px;
-    color: var(--color-primary);
+    color: var(--color-neutral);
   }
 </style>

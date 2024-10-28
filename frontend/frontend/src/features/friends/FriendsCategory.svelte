@@ -59,7 +59,7 @@
   .arrow-icon {
     transition: transform .2s ease-out;
     transform: translateY(-50%) rotate(90deg);
-    fill: white;
+    fill: var(--color-neutral);
     height: 100%;
     overflow: visible; /* otherwise part of it clips?? */
   }
@@ -76,7 +76,7 @@
   }
   .spacer {
     position: relative;
-    color: white;
+    color: var(--color-neutral);
     font-weight: bold;
     display: flex;
     align-items: center;

@@ -21,24 +21,24 @@
     cursor: pointer;
 
     background-color: var(--color-button);
-    border: 4px solid var(--color-button-border);
     color: var(--color-button-text);
+    border: var(--button-border-width) solid var(--color-button-border);
+
+    transition: var(--button-transition);
 
     &:hover {
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       background-color: var(--color-button-hover);
-      border-color: var(--color-button-hover);
-      transform: translateY(-50%, calc(-50% - 1px));
+      color: var(--color-button-text-hover);
+      border: var(--button-border-width-hover) solid var(--color-button-border-hover);
     }
     &:active {
-      background-color: var(--color-button-hover);
-      border-color: var(--color-button-hover);
-      /* Remove hover effects */
-      transform: translate(-50%, calc(-50% + 1px));
-      box-shadow: none;
+      background-color: var(--color-button-active);
+      color: var(--color-button-text-active);
+      border: var(--button-border-width-active) solid var(--color-button-border-active);
+      transform: translate(-50%, -50%) var(--button-transform-active);
     }
   }
   .bubble {
-    border-radius: 25px;
+    border-radius: 20px;
   }
 </style>

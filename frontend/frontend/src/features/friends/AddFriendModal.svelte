@@ -111,10 +111,10 @@
     height: 65%;
   }
   .send-cont > svg {
-    fill: var(--color-primary-darker);
+    fill: var(--color-accent);
   }
-  .invite-cont > svg {
-    stroke: var(--color-primary-darker);
+  .invite-cont > svg, .invite-cont path {
+    stroke: var(--color-accent);
   }
   .parent {
     position: fixed;
@@ -138,9 +138,11 @@
   h2 {
     margin: 0px;
     text-align: center;
+    color: var(--color-neutral);
   }
   .close {
     position: absolute;
+    color: var(--color-neutral);
     font-size: 30px;
     cursor: pointer;
     top: 50%;

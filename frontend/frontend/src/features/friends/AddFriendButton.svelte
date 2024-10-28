@@ -45,10 +45,10 @@
   }
   svg {
     height: 100%;
-    stroke: var(--color-primary-dark);
+    stroke: transparent;
     stroke-width: 3px;
   }
   svg path {
-    fill: var(--color-primary-lighter);
+    fill: var(--color-neutral);
   }
 </style>

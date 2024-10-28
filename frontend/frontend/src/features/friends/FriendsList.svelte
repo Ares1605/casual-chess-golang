@@ -52,7 +52,7 @@
   </svg>
 </div>
 
-<style>
+<style lang="scss">
   .footer {
     opacity: 0;
     height: 40px;
@@ -81,25 +81,30 @@
     transition: .2s opacity;
     width: 9px;
     padding: 5px;
-    fill: #42210d;
+    fill: var(--color-neutral);
   }
   .container:not(.expanded) .parent-list:hover {
     opacity: .93;
+
+    ~ .arrow-icon {
+      opacity: 1;
+    }
   }
   .container:not(.expanded) .parent-list {
     margin-right: -190px;
   }
   .parent-list {
     position: relative;
+    outline: none;
     transition: .2s opacity, .15s margin-right ease-in-out;
     height: 100%;
     box-sizing: border-box;
     min-width: 250px;
     max-width: 250px;
+    border: none;
     border-top: 5px solid var(--color-primary-darker);
     background-color: var(--color-primary-darker);
     box-sizing: border-box;
-    border: none;
     padding: 0px;
   }
   .list-cont {

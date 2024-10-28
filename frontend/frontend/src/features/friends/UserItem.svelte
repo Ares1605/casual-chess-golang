@@ -42,7 +42,7 @@
     justify-content: start;
     align-items: center;
     background-color: var(--color-primary-dark);
-    color: var(--color-primary-light);
+    color: var(--color-neutral);
     font-weight: bold;
     font-size: 15px;
     width: 100%;

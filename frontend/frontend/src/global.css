@@ -1,34 +1,46 @@
 :root {
     /* Primary colors */
-    --color-primary: #2b2a27;
-    --color-primary-dark: #21201c;
-    --color-primary-light: rgb(108, 106, 96);
+    --color-primary: #151B23;
+    --color-primary-dark: #181f2b;
+    --color-primary-darker: #0D1117;
+    --color-primary-light: #3d444d;
+    --color-primary-ligher: #212830;
 
     /* Neutral/background colors */
-    --color-neutral: #e5e5e2;
-    --color-neutral-darker: #b8b5a9;
+    --color-neutral: #f0f6fc;
+    --color-neutral-dark: #b8b5a9;
 
     /* Accent colors */
     --color-accent: #b6613c;
     --color-accent-dark: #9c5232;
 
     /* Semantic aliases - examples of how you might use them */
-    --color-background: var(--color-primary);
+    --color-background: var(--color-primary-light);
 
     --color-text-dark: var(--color-primary-dark);
     --color-text-light: var(--color-neutral);     /* For dark backgrounds */
     --color-text-accent: var(--color-accent);
 
-    --color-button: var(--color-neutral);
-    --color-button-hover: var(--color-neutral);
-    --color-button-border: var(--color-accent-dark);
+    /* button regular styles */
+    --color-button: var(--color-primary);
     --color-button-text: var(--color-neutral);
+    --color-button-border: var(--color-primary-darker);
+    --button-border-width: 2px;
     --button-transition: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
-    --color-border: var(--color-accent-dark);
-    --border-width: .5px;
-    --border-width-hover: .8px;
-    --transform-active: 'matrix(0.9875, 0, 0, 0.9875, 0, 0)'
+    /* button hover styles */
+    --color-button-hover: var(--color-primary);
+    --color-button-text-hover: var(--color-neutral-dark);
+    --color-button-border-hover: var(--color-primary-darker);
+    --button-border-width-hover: 2.5px;
+
+    /* button active styles */
+    --color-button-active: var(--color-primary);
+    --color-button-text-active: var(--color-neutral-dark);
+    --color-button-border-active: var(--color-primary-darker);
+    --button-border-width-active: 2.5px;
+
+    --button-transform-active: scaleX(.97) scaleY(.98);
 }
 html {
     height: 100%;
