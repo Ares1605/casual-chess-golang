@@ -7,11 +7,18 @@ export enum TypesType {
   Warning = "Warning",
   Success = "Success"
 }
+const TypeToIconSrc = {
+  [TypesType.Error]: "/error-ico.svg",
+  [TypesType.Success]: "/success-ico.svg",
+  [TypesType.Warning]: "/warning-ico.svg",
+  [TypesType.Informational]: "/informational-ico.svg"
+};
 
 type NotifType = {
   title?: string,
   body: string,
-  type: TypesType
+  type: TypesType,
+  icon_src: string
 };
 
 function createNotifStore() {
@@ -20,7 +27,8 @@ function createNotifStore() {
     let notif: NotifType = {
       body: body,
       title: title,
-      type: type
+      type: type,
+      icon_src: TypeToIconSrc[type]
     };
     update(notifs => [...notifs, notif]);
     setTimeout(() => {

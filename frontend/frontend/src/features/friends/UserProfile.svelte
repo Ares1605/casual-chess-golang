@@ -5,8 +5,7 @@
 
   setTimeout(() => opacity = 1);
 </script>
-
-<div style="opacity: {opacity}" class="container">
+<div style:opacity={opacity} class="container">
   <img src={user.profile_url} alt="profile">
   {user.username}
 </div>
@@ -15,15 +14,15 @@
     height: 50px;
   }
   .container {
+    z-index: 2;
     transition: .2s opacity;
     position: absolute;
-    top: 0px;
-    left: -10px;
     width: 150px;
-    background-color: #d4bea1;
-    border: 3px solid #42210d;
+    background-color: var(--color-primary);
+    border: 3px solid var(--color-primary-darker);
+    color: var(--color-neutral);
     border-radius: 3px;
     padding: 10px;
-    transform: translateX(-100%);
+    transform: translateX(-50%);
   }
 </style>

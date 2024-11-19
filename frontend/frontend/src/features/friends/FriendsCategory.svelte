@@ -19,11 +19,9 @@
     </button>
   </button>
   <div class:fold={fold} class="users">
-    <div class="inner">
-      {#each users as user}
-        <UserItem {minimizedWidth} {user} />
-      {/each}
-    </div>
+    {#each users as user}
+      <UserItem {minimizedWidth} {user} />
+    {/each}
   </div>
 </div>
 
@@ -32,16 +30,12 @@
     width: 100%;
   }
   .users {
-    display: grid;
-    grid-template-rows: 1fr;
-    transition: grid-template-rows 0.1s ease-out, transform 0.1s ease-out;
+    height: auto;
     width: 100%;
   }
   .users.fold {
-    grid-template-rows: 0fr;
-  }
-  .inner {
-        overflow: hidden;
+    height: 0px;
+    overflow-y: hidden;
   }
   .fold-btn {
     background-color: transparent;

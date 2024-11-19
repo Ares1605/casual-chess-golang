@@ -9,28 +9,25 @@
 
 <div class:active={$modals.length > 0} class="interface">
   {#each $modals as modal, index}
-  <div style:z-index={index + 5} class="modal">
+  <div class:top={index === $modals.length - 1} style:z-index={index + 5} class="interface active">
     <Modal on:close={onClose} {modal}/>
   </div>
   {/each}
 </div>
 
-<style>
+<style lang="scss">
   .interface {
-    z-index: 4;
-    transition: 0.2s opacity;
     position: absolute;
-    visibility: hidden;
-    opacity: 0;
     width: 100%;
     height: 100%;
     top: 0px;
     left: 0px;
-    background-color: rgba(0, 0, 0, .4);
-  }
-  
-  .interface.active {
-    opacity: 1;
-    visibility: visible;
+    visibility: hidden;
+    .active {
+      visibility: visible;
+    }
+    .top {
+      background-color: rgba(0, 0, 0, .7);
+    }
   }
 </style>

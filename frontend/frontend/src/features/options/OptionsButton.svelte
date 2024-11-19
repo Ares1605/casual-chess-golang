@@ -2,8 +2,8 @@
   import type { ComponentType } from "svelte";
   import type { Writable } from "svelte/store";
   import Home from "../../pages/Home.svelte";
-    import OptionsModal from "./OptionsModal.svelte";
-    import { openModal } from "../../lib/modals";
+  import OptionsModal from "./OptionsModal.svelte";
+  import { openModal } from "../../lib/modals";
 
   export let route: Writable<ComponentType>;
   export let height = "100%";
@@ -15,8 +15,7 @@
       component: OptionsModal,
       props: {},
       closeOnClickOutside: true,
-      closeOnEscape: true,
-      onClose: () => console.log('Modal closed')
+      closeOnEscape: true
     });
 
   }

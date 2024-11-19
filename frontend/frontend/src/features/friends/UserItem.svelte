@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import UserProfile from "./UserProfile.svelte";
+  import { userProfile } from "../../lib/userProfile";
+    import UserProfile from "./UserProfile.svelte";
 
   export let user: any;
   export let minimizedWidth: string;
@@ -8,14 +9,17 @@
 
   let container: HTMLDivElement;
 
-  let openProfile = false;
+  let show = false;
 
   onMount(() => {
     container.addEventListener("mouseenter", () => {
-      openProfile = true;
+      console.log({ user: user, reference: container });
+      userProfile.set({ user: user, reference: container});
+      show = true;
     });
     container.addEventListener("mouseleave", () => {
-      openProfile = false;
+      userProfile.set(null);
+      show = false;
     });
   });
 </script>
@@ -25,7 +29,7 @@
     <img style="width: {minimizedWidth}"{src} alt="profile">
     <span>{user.username}</span>
   </div>
-  {#if openProfile}
+  {#if show}
     <UserProfile {user} />
   {/if}
 </div>

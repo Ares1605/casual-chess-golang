@@ -1,38 +1,20 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
-  import { notifs, TypesType } from "../../lib/notifs";
-  import { openModal } from "../../lib/modals";
-  import OptionsModal from './OptionsModal.svelte';
-  import Button from "../../common/Button.svelte";
+    import { openModal } from "../../lib/modals";
+    import SettingsModal from "../settings/SettingsModal.svelte";
 
-  const dispatch = createEventDispatcher();
-  const closeModal = () => dispatch('close');
-
-  let inviteCode: HTMLSpanElement;
-  const copyInviteCode = () => {
-    navigator.clipboard.writeText(inviteCode.textContent);
-    notifs.add(TypesType.Success, "Copied to clipboard!");
-  }
-  const open =() => {
-    openModal({
-      component: OptionsModal,
-      props: {
-        title: 'Hello World'
-      },
-      closeOnClickOutside: true,
-      closeOnEscape: true,
-      onClose: () => console.log('Modal closed')
-    });
-
-  }
+    const onClick = () => {
+      openModal({
+        component: SettingsModal,
+        props: {},
+        closeOnClickOutside: true,
+        closeOnEscape: true
+      });
+    }
 </script>
-<div class="parent">
-  <span on:click={closeModal} class="close">✖</span>
-  <div class="buttons">
-    <button>Options</button>
-    <button>Sign Out</button>
-    <button>Exit</button>
-  </div>
+<div class="buttons">
+  <button on:click={onClick}>Settings</button>
+  <button>Sign Out</button>
+  <button>Exit</button>
 </div>
 <style>
   .buttons {
@@ -57,26 +39,6 @@
     &:hover {
       background-color: var(--color-primary-light);
     }
-  }
-  .parent {
-    position: fixed;
-
-    left: 50%;
-    top: 60px;
-    transform: translateX(-50%);
-    width: 450px;
-    overflow: auto;
-    background-color: var(--color-primary);
-    border: 3px solid var(--color-primary-darker);
-    border-radius: 5px;
-  }
-  .close {
-    position: absolute;
-    color: var(--color-neutral);
-    font-size: 30px;
-    cursor: pointer;
-    top: 2px;
-    right: 7px;
   }
 </style>
 
