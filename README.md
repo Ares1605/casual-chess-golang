@@ -56,3 +56,23 @@ go build backend
 ### Frontend
 
 For development:
+```bash
+cd frontend
+wails dev
+```
+
+For production build:
+```bash
+cd frontend
+wails build
+```
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the LICENSE file for details.
+
+## Acknowledgments
+
+- [Wails](https://wails.io/) - The framework that made this desktop application possible
+- [Svelte](https://svelte.dev/) - For the reactive frontend
+- [Gin](https://gin-gonic.com/) - The web framework used for the backend
