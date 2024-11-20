@@ -1,5 +1,5 @@
 # Casual Chess
-
+[![Wails](https://img.shields.io/badge/wails-%23242526.svg?style=for-the-badge&logo=wails&logoColor=red&labelColor=%23242526)](https://wails.io/)
 [![Go](https://img.shields.io/badge/go-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white)](https://go.dev/)
 [![Svelte](https://img.shields.io/badge/svelte-%23f1413d.svg?style=for-the-badge&logo=svelte&logoColor=white)](https://svelte.dev)
 [![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
